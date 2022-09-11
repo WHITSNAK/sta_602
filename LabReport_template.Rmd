@@ -1,0 +1,63 @@
+---
+title: 'STA 602 Homework and Lab Template'
+author: "Student"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+library(tidyverse)
+require(magrittr)
+require(plyr)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+Here's a list of resources for learning rmarkdown:
+
+1. [R markdown introduction](https://rmarkdown.rstudio.com/lesson-1.html)
+1. [R for Data Science](https://r4ds.had.co.nz/)
+1. [Introduction to R markdown](https://rmarkdown.rstudio.com/articles_intro.html)
+1. [Another introduction to R markdown](https://rpubs.com/andrew-cho/303981)
+1. [R markdown cheatshett](https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+1. [Data visualization with ggplot2 cheat sheet](https://rstudio.com/wp-content/uploads/2016/11/ggplot2-cheatsheet-2.1.pdf)
+1. [Learn LaTex in 30 minutes](https://www.overleaf.com/learn/latex/Learn_LaTeX_in_30_minutes)
+
+
+***
+
+## Exercise 1
+
+Brief statement of the problem (optional)
+
+### Part (a)
+
+Then, some math:
+
+$$
+\begin{aligned}
+X \sim N(\mu,1) \implies p_X(x) = \frac{1}{\sqrt{2\pi}}e^{-\frac{1}{2}(x - \mu)^2}
+\end{aligned}
+$$
+
+### Part (b)
+
+Finally, some code:
+
+```{r, warning = F}
+x <- rnorm(1000, 0, 1)
+x %>% data.frame() %>% ggplot2::ggplot() + geom_histogram(aes(x = x))
+  
+```
+
+## Exercise 2
+
+Repeat...
+
+### Part (a)
+
+### Part (b)
+
+***
+
