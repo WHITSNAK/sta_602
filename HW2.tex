@@ -196,6 +196,48 @@ takes into account all of it.
 
 
 \section{Excerise 3.10}
+\paragraph{(a)}
+\begin{align*}
+    \psi &= \log[\theta/(1-\theta)] = g(\theta) && where \, \theta \thicksim Beta(a, b) \\
+    e^{\psi} &= \frac{\theta}{(1- \theta)} \\
+    \theta &= \frac{e^{\psi}}{1+e^{\psi}} = 1 - \frac{1}{1+e^{\psi}} = g^{-1}(\psi)
+\end{align*}
 
+With the inverse transformation function, we can derive the density function for $\psi$.
+\begin{align*}
+    p(\psi) &= p_{\theta}(g^{-1}(\psi)) \cdot \mid \frac{\partial g^{-1}}{\partial \psi} \mid \\
+      &= p_{\theta}(1 - \frac{1}{1+e^{\psi}}) e^{\psi} {(1+e^{\psi})}^{-2} \\
+      &= {\mathbf{B}(a, b)}^{-1} {(1 - \frac{1}{1+e^{\psi}})}^{a-1} {(\frac{1}{1+e^{\psi}})}^{b-1} e^{\psi} {(1+e^{\psi})}^{-2} \\
+      &= {\mathbf{B}(a, b)}^{-1} {(1 - \frac{1}{1+e^{\psi}})}^a {(\frac{1}{1+e^{\psi}})}^b
+\end{align*}
+
+\begin{figure}[h]
+    \captionsetup{justification=centering, margin=2cm}
+    \centering
+    \includegraphics[width=0.5\textwidth]{hw2_3.10.a.png}
+    \caption{The distribution of $\psi = \log[\theta/(1-\theta)]|a = b = 1$}
+\end{figure}
+
+\vspace{3in}
+
+\paragraph{(b)}
+\begin{align*}
+    \psi &= \log[\theta] = g(\theta) && where \, \theta \thicksim Gamma(a, b) \\
+    e^{\psi} &= \theta = g^{-1}(\psi)
+\end{align*}
+
+With the inverse transformation function, we can derive the density function for $\psi$.
+\begin{align*}
+    p(\psi) &= p_{\theta}(g^{-1}(\psi)) \cdot \mid \frac{\partial g^{-1}}{\partial \psi} \mid \\
+      &= \frac{b^a}{\Gamma(a)} e^{\psi(a-1)} e^{-be^{\psi}} e^{\psi} \\
+      &= \frac{b^a}{\Gamma(a)} e^{a\psi} e^{-be^{\psi}}
+\end{align*}
+
+\begin{figure}[h]
+    \captionsetup{justification=centering, margin=2cm}
+    \centering
+    \includegraphics[width=0.5\textwidth]{hw2_3.10.b.png}
+    \caption{The distribution of $\psi = \log[\theta]|a = b = 1$}
+\end{figure}
 
 \end{document}
