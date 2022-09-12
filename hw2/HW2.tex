@@ -7,7 +7,7 @@
 \usepackage{graphicx}
 \usepackage[font=scriptsize]{caption}
 \usepackage{subcaption}
-\graphicspath{ {./statics/} }
+\graphicspath{ {.} }
 \captionsetup{justification=raggedright, singlelinecheck=false}
 
 
@@ -24,7 +24,7 @@
     Y_{i\in N} \overset{iid}{\thicksim} Bernoulli(\theta) && N &= 100 \\
     p(y_1, y_2 \dots y_{100}) &= \prod_{i=1}^{100} \mathbb{I}(y_i=1)\theta + \mathbb{I}(y_i=0)(1-\theta) \\
         &= {\theta^{N_1}(1-\theta)}^{N_0} && N_1 = \sum_{i=1}^{100} \mathbb{I}(y_i=1) \\
-    p(\sum_i^{100} y_i | \theta) &= {100 \choose N_1} {\theta^{N_1}(1-\theta)}^{N_0}
+    p(\sum_i^{100} y_i | \theta) &= \binom{100}{N_1} {\theta^{N_1}(1-\theta)}^{N_0}
 \end{align*}
 
 \paragraph{(b) $\thicksim$ (e)}
@@ -116,7 +116,7 @@ If we start using the Beta mixture prior to the Binomial likelihood, the posteri
 \begin{align*}
     p(\theta) &= \frac{1}{4}\frac{\Gamma(10)}{\Gamma(2)\Gamma(8)}[3\theta{(1-\theta)}^7+\theta^7(1-\theta)] \\
     p(\theta|y) &\propto p(y|\theta)p(\theta) \\
-        &= \frac{1}{4}\frac{\Gamma(10)}{\Gamma(2)\Gamma(8)}[3\theta{(1-\theta)}^7+\theta^7(1-\theta)] {43 \choose 15}\theta^{15}{(1-\theta)}^{28} \\
+        &= \frac{1}{4}\frac{\Gamma(10)}{\Gamma(2)\Gamma(8)}[3\theta{(1-\theta)}^7+\theta^7(1-\theta)] \binom{43}{15}\theta^{15}{(1-\theta)}^{28} \\
         &\propto [3\theta{(1-\theta)}^7+\theta^7(1-\theta)] \theta^{15}{(1-\theta)}^{28} \\
         &= \frac{3}{4}[\theta^{17-1}{(1-\theta)}^{36-1}] + \frac{1}{4}[\theta^{23-1}{(1-\theta)}^{30-1}] \\
         &= 75\% \cdot Beta(17, 36) + 25\% \cdot Beta(23, 30)
@@ -162,9 +162,9 @@ for instance, Binomial in this case.
 Plugging both pdfs we arrive at a BetaBinomial for the posterior predictive distribution.
 \begin{align*}
     p(y_2|y_1=2) &= \int_0^1{p(y_2|\theta, y_1=2)p(\theta|y_1=2)} \, d\theta  \\
-      &= \int_0^1 {278 \choose y_2} \theta^{y_2} {(1-\theta)}^{278-y_2} \mathbf{B}(3, 14)^{-1}\theta^2{(1-\theta)}^{13} \, d\theta \\
-      &= {278 \choose y_2}\mathbf{B}(3, 14)^{-1} \int_0^1 \theta^{y_2+2} {(1-\theta)}^{291-y_2} \, d\theta \\
-      &= {278 \choose y_2} \frac{\mathbf{B}(y_2+3, 278+14-y_2)}{\mathbf{B}(3, 14)} \\
+      &= \int_0^1 \binom{278}{y_2} \theta^{y_2} {(1-\theta)}^{278-y_2} {\mathbf{B}(3, 14)}^{-1}\theta^2{(1-\theta)}^{13} \, d\theta \\
+      &= \binom{278}{y_2} {\mathbf{B}(3, 14)}^{-1} \int_0^1 \theta^{y_2+2} {(1-\theta)}^{291-y_2} \, d\theta \\
+      &= \binom{278}{y_2} \frac{\mathbf{B}(y_2+3, 278+14-y_2)}{\mathbf{B}(3, 14)} \\
       &\thicksim BetaBinomial(y_2 | n=278, \alpha = 3, \beta = 14)
 \end{align*}
 
