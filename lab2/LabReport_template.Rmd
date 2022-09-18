@@ -1,0 +1,126 @@
+---
+title: 'STA 602 Lab'
+author: "Ryan Tang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=FALSE, warning=FALSE, echo=FALSE}
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+require(rstan)
+require(plyr)
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+
+***
+
+## Exercise 1
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, cache=TRUE, results='hide'}
+tumors <- read.csv(
+  file = url("http://www.stat.columbia.edu/~gelman/book/data/rats.asc"),
+  skip = 2, header = TRUE, sep = " "
+)[, c(1, 2)]
+
+y <- tumors$y
+N <- tumors$N
+n <- length(y)
+
+stan_dat <- list(n = n, N = N, y = y, a = 1, b = 1)
+fit_pool <- stan('lab-02-pool.stan', data = stan_dat, chains = 2, refresh = 0)
+pool_output <- rstan::extract(fit_pool)
+```
+
+```{r}
+hist(pool_output$theta)
+```
+
+
+## Exercise 2
+```{r message=FALSE, warning=FALSE, echo=FALSE, cache=TRUE, results='hide'}
+stan_dat <- list(n = n, N = N, y =y, a = 1, b = 1)
+fit_nopool <- stan('lab-02-nopool.stan', data = stan_dat, chains = 2, refresh = 0)
+nopool_output <- rstan::extract(fit_nopool)
+```
+
+So we estimated $\theta_i$ for each trial in the sample using the $p(\theta_i) = Beta(1,1)$ uniform
+priors and likelihood function $p(y_i|\theta_i) = Binom(N_i, k_i)$, and plotted the posterior distributions
+$p(\theta_i|y_i)$ for each trial in a Boxplot, one for each trial. The points here are just outliners in
+terms of boxplot's definition, which is outside the 75% or 25% percentiles.
+
+```{r}
+boxplot(nopool_output$theta)
+```
+
+## Exercise 3
+The only pertinent difference between the two STAN models is that `pool` has one parameter and `noPool`
+has `n` parameters --- same as the number of trials. In other words, we assume all trials are iid from the
+`pool` model but not identically distributed in the `nopool` model. 
+
+
+## Exercise 4
+```{r message=FALSE, warning=FALSE, echo=FALSE, cache=TRUE, results='hide', fig.show='hide'}
+output_list <- list()
+for(a_val in c(1, 10, 25, 100)){
+  for(b_val in c(1, 10, 25, 100)){
+    stan_dat <- list(n = n, N = N, y = y, a = a_val, b = b_val)
+    fit_pool <- stan('lab-02-pool.stan', data = stan_dat, chains = 2, refresh = 0)
+    output_list[[paste0("a_", a_val, ":b_", b_val)]] <- rstan::extract(fit_pool)[["theta"]]
+  }
+}
+
+output_list %>%
+  plyr::ldply(function(theta){
+    reshape2::melt(theta) %>%
+      dplyr::mutate(post_mean = mean(theta))
+  }, .id = "prior") %>%
+  tidyr::separate("prior", into = c("a", "b"), sep = ":") %>%
+  dplyr::mutate(a = as.numeric(gsub("._", "", a)),
+                b = as.numeric(gsub("._", "", b))) %>%
+  ggplot2::ggplot() +
+  geom_density(aes(x = value)) +
+  geom_vline(aes(xintercept = post_mean)) +
+  facet_grid(a~factor(b, levels = rev(c(1, 10, 25, 100)))) +
+  scale_colour_brewer(palette = "Set1") +
+  labs(x = expression(theta), y = "Density")
+
+```
+
+We can intuitively see that based on the Binom likelihood, given a trial with N draws, 
+$a$ represents the number of rats with tumor and $b$ represents the number rats do not have tumor.
+
+## Exercise 5
+From out trail samples, the chance of obtaining tumor is low. And $Beta$ distribution's is given by the below equation.
+$$
+  E[\theta|Y] = \frac{a}{a+b}
+$$
+Hence, we are consistently seeing samples with $a$ much lower than $b$. 
+
+```{r}
+total_rats <- sum(N)
+total_a <- sum(y)
+total_b <- total_rats - total_a
+print(paste("Total rats =", total_rats))
+print(paste("Total rats with Tumor = a =", total_a))
+print(paste("Total rats without Tumor = b =", total_b))
+```
+
+
+## Exercise 6
+The batch with $b$ set less or equal to 25 did pretty well. The higher it is, the stronger your belief that the
+tumor is rare represented in terms of sample size. Hence, it needs more data to "convince" your prior belief.
+
+
+## Exercise 7
+The MLE results is for the $\hat{\theta_i} = \frac{y_i}{N_i}$ and $\hat{\theta} = \frac{\sum y_i}{\sum N_i}$.
+They are just the sample means. The differences between approaches 1 and 2 are because we used a Uniform prior
+that represented us do not hold a strong belief of the true tumor rate (effective sample size 2). Hence,
+the posteriors are heavily affected by the sample mean instead of the prior.
+
+***
+
