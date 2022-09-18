@@ -67,7 +67,6 @@ As long as we model both the sampling distribution and the prior all within the 
 posterior is also an exponential family distribution. The derivation also generalizes to priors that are
 a mixture of distributions from the exponential family. The resulting posterior is simply a weighted sum
 of each prior $p(\phi)$ that is updated by the data $Y$ separately.
-\begin{proof}
 \begin{align*}
   p(y|\phi) &= h(y)c(\phi)e^{\phi t(y)} \\
   p(Y|\phi) &= \prod_{i=1}^{n} h(y_i)c(\phi)e^{\phi t(y_i)} && Y_{i \in n} \overset{iid}{\thicksim} p(y|\phi) \\
@@ -81,7 +80,6 @@ of each prior $p(\phi)$ that is updated by the data $Y$ separately.
     &\propto \sum_{k=1}^{K} w_k {c(\phi)}^{n_0^{(k)} + n} \exp(\phi \times (n_0^{(k)} t_0^{(k)} + \sum_{i=1}^{n} t(y_i))) \\
     &\propto \sum_{k=1}^{K} w_k p_k(\phi | n_0^{(k)}+n, n_0^{(k)} t_0^{(k)} + n \overline{t}(Y))
 \end{align*}
-\end{proof}
 
 \paragraph{(b)}
 First we write the Poisson distribution in its exponential family form as below.
@@ -93,15 +91,16 @@ First we write the Poisson distribution in its exponential family form as below.
   \therefore
     & \phi = \log(\theta) \\
     & c(\phi) = \exp({A(\phi)}^{-1}) = \exp(e^{-\phi}) \\
-    & t(y) = y \\ \\
+    & t(y) = y \\
   p(y|\phi) &\propto \exp(e^{-\phi}) e^{\phi y}
 \end{align*}
-Hence, its conjugate prior Gamma has the form of $Gamma(\phi|n_0, t_0) = p(\phi) \propto \exp(n_0 e^{-\phi}) e^{n_0 t_0 \phi}$.
+Hence, its conjugate prior Gamma has the form of $Gamma(\phi|n_0, t_0) = p(\phi) \propto \exp(e^{-\phi})^{n_0} e^{n_0 t_0 \phi}$.
 And the posterior distribution is
 \begin{align*}
-  p(\phi|Y) &\propto \sum_{k=1}^{K} w_k \exp((n_0^{(k)}+n) e^{-\phi}) \exp((n_0^{(k)} t_0^{(k)} + n\overline{y}) \times \phi) \\
+  \tilde{p}(\phi|Y) &\propto \sum_{k=1}^{K} w_k {\exp(e^{-\phi})}^{n_0^{(k)}+n} \exp((n_0^{(k)} t_0^{(k)} + n\overline{y}) \times \phi) \\
   where \,\, \overline{y} &= \frac{1}{n} \sum_{i=1}^{n} y_i
 \end{align*}
+\newpage
 
 
 \section{Excerise PH 3.8}
