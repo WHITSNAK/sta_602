@@ -65,7 +65,7 @@ whether the independence assumption makes sense or not.
 \paragraph{(a)}
 As long as we model both the sampling distribution and the prior all within the exponential family, the resulting
 posterior is also an exponential family distribution. The derivation also generalizes to priors that are
-a mixture of distributions from the exponential family. The resulting posterior is simply a weighted sum
+a mixture of exponential family distributions. The resulting posterior is simply a weighted average
 of each prior $p(\phi)$ that is updated by the data $Y$ separately.
 \begin{align*}
   p(y|\phi) &= h(y)c(\phi)e^{\phi t(y)} \\
@@ -77,33 +77,33 @@ of each prior $p(\phi)$ that is updated by the data $Y$ separately.
 \begin{align*}
   p(\phi|Y) &\propto p(Y|\phi)\tilde{p}(\phi) \\
     &\propto {c(\phi)}^{n} \exp(\phi \sum_{i=1}^{n} t(y_i)) \sum_{k=1}^{K} w_k {c(\phi)}^{n_0^{(k)}} \exp(n_0^{(k)} t_0^{(k)} \phi) \\
-    &\propto \sum_{k=1}^{K} w_k {c(\phi)}^{n_0^{(k)} + n} \exp(\phi \times (n_0^{(k)} t_0^{(k)} + \sum_{i=1}^{n} t(y_i))) \\
-    &\propto \sum_{k=1}^{K} w_k p_k(\phi | n_0^{(k)}+n, n_0^{(k)} t_0^{(k)} + n \overline{t}(Y))
+    &\propto \sum_{k=1}^{K} w_k \cdot {c(\phi)}^{n_0^{(k)} + n} \exp(\phi \times (n_0^{(k)} t_0^{(k)} + \sum_{i=1}^{n} t(y_i))) \\
+    &\propto \sum_{k=1}^{K} w_k \cdot p_k(\phi | n_0^{(k)}+n, n_0^{(k)} t_0^{(k)} + n \overline{t}(Y))
 \end{align*}
 
 \paragraph{(b)}
 First we write the Poisson distribution in its exponential family form as below.
 \begin{align*}
-  p(y|\theta) &= \frac{1}{y!} \theta^y e^{-\theta} \thicksim Poission(\theta) \\
+  p(y|\theta) &= \frac{1}{y!} \theta^y e^{-\theta} \thicksim Poisson(\theta) \\
     &\propto \theta^y e^{-\theta} \\
     &= e^{y \log(\theta)} e^{-\theta} \\
-    &= \exp[y\log(\theta) - e^{\log(\theta)}] \\ \\
-  \therefore
-    & \phi = \log(\theta) \\
+    &= \exp[y\phi - e^{\phi}] \\ \\
+  \therefore \quad & \phi = \log(\theta) \\
     & c(\phi) = \exp({A(\phi)}^{-1}) = \exp(e^{-\phi}) \\
     & t(y) = y \\
-  p(y|\phi) &\propto \exp(e^{-\phi}) e^{\phi y}
+  p(y|\theta) &\propto \exp(e^{-\phi}) e^{\phi y}
 \end{align*}
-Hence, its conjugate prior Gamma has the form of $Gamma(\phi|n_0, t_0) = p(\phi) \propto \exp(e^{-\phi})^{n_0} e^{n_0 t_0 \phi}$.
+Hence, its conjugate prior Gamma has the form of $p(\phi|n_0, t_0) \propto \exp(n_0 e^{-\phi}) e^{n_0 t_0 \phi}$.
 And the posterior distribution is
 \begin{align*}
-  \tilde{p}(\phi|Y) &\propto \sum_{k=1}^{K} w_k {\exp(e^{-\phi})}^{n_0^{(k)}+n} \exp((n_0^{(k)} t_0^{(k)} + n\overline{y}) \times \phi) \\
-  where \,\, \overline{y} &= \frac{1}{n} \sum_{i=1}^{n} y_i
+  \tilde{p}(\phi|Y) &\propto \sum_{k=1}^{K} w_k \exp(\alpha^{(k)} \phi + \beta^{(k)} e^{-\phi}) \\
+    \alpha^{(k)} &= n_0^{(k)} t_0^{(k)} + n\overline{y} \qquad\quad \beta^{(k)} = n_0^{(k)} + n \qquad\quad \overline{y} = \frac{1}{n} \sum_{i=1}^{n} y_i
 \end{align*}
 \newpage
 
 
 \section{Excerise PH 3.8}
+
 \newpage
 
 
