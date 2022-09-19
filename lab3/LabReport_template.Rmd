@@ -1,0 +1,160 @@
+---
+title: 'STA 602 Lab'
+author: "Student"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+require(rstan)
+require(plyr)
+require(bayesplot)
+require(loo)
+require(readxl)
+require(ggplot2)
+
+setwd("~/workspace/duke_mss/sta_602/lab3/")
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+
+***
+```{r, echo=FALSE, cache=TRUE}
+# reading in the dataset
+got <- read_xlsx("GoT_Deaths.xlsx", col_names=TRUE)
+```
+
+## Exercise 1
+
+```{r}
+ggplot(got, aes(x = Count)) +
+  geom_histogram(aes(y=..density..), fill='#69bad5') +
+  geom_density(alpha=.2, color="#191414") +
+  xlab("Death Count")
+```
+
+
+## Exercise 2
+
+
+```{r, cache=TRUE, echo=FALSE}
+y <- got$Count
+n <- length(y)
+
+# setting up the stan model
+stan_dat <- list(y = y, N = n)
+fit <- stan(
+  "lab-03-poisson-simple.stan",
+  data = stan_dat, refresh = 0, chains = 2
+)
+```
+
+```{r}
+lambda_draws <- as.matrix(fit, pars = "lambda")
+mcmc_areas(lambda_draws, prob = 0.95)
+print(fit, pars = "lambda")
+```
+
+## Exercise 3
+```{r, echo=FALSE}
+get_poisson_sample <- function(n, lambdas) {
+  M <- matrix(nrow=length(lambdas), ncol=n)
+  i <- 1
+  for (lam in lambda_draws) {
+    M[i,] = rpois(n=n, lambda=lam)
+    i <- i + 1
+  }
+
+  return(M)
+}
+
+prop_zero <- function(x){
+  mean(x == 0)
+} 
+```
+
+```{r}
+set.seed(235983)
+
+y_rep <- get_poisson_sample(n, lambda_draws)
+head(y_rep)
+```
+
+## Exercise 4
+We have only a reasonable estimate of the mean using the naive Poisson generative model.
+However, the original data has lots of zeros death that are hard for the naive Poisson distribution
+to capture. Hence, we see a significant difference in the density comparison plot at 0. I will not
+say that the naive model is wrong, but it certainly can be made better to account for the bimodality
+in the death count.
+
+
+## Exercise 5
+```{r, cache=TRUE}
+# setting up the stan model
+fit2 <- stan(
+  "lab-03-poisson-hurdle.stan",
+  data = stan_dat, refresh = 0, chains = 2
+)
+```
+
+
+## Exercise 6
+
+```{r}
+# compare lambda posterial
+lambda_draws2 <- as.matrix(fit2, pars = "lambda")
+
+mcmc_areas(
+  cbind(lambda_fit1 = lambda_draws[, 1], lambda_fit2 = lambda_draws2[, 1]),
+  prob = 0.9
+)
+```
+
+```{r}
+set.seed(235983)
+
+y_rep2 <- as.matrix(fit2, pars='y_rep')
+head(y_rep2)
+
+ppc_dens_overlay(y, y_rep2[1:60, ])
+ppc_stat(y, y_rep2, stat = "prop_zero")
+ppc_stat_2d(y, y_rep2, stat = c("mean", "var"))
+ppc_error_hist(y, y_rep2[1:4, ], binwidth = 1) + xlim(-15, 15)
+```
+
+
+## Exercise 7
+We can see that the new Poisson hurdle model performs much better than the
+original naive Poisson model.
+
+```{r}
+loo1 <- loo(fit)
+loo2 <- loo(fit2)
+
+loo_compare(loo1, loo2)
+```
+
+
+## Excercise 8
+PPC is important, of course. Modeling is a process establishing assumptions and testing those
+assumptions. One directly way of checking if our assumptions are accurate is to compare the data
+resulting from the generative model and the observed data.
+
+## Excercise 9
+The Poisson hurdle model fits quite well, although it can be better. With the hurdle model,
+we do a good job modeling the frequent zero-death observations. However, looking at the mean-variance
+2-D comparison, we can still see that the actual data has a higher variance than our model.
+It can mean the Poisson assumption might not be the best fit because it assumes the data has
+equal mean and variance.
+
+## Excercise 10
+A single LOOCV error is still useful. At least I can get a sense of the prediction error of the model
+in interest.
+
+***
+
