@@ -61,6 +61,7 @@ relationship between the two strains. It is better to consult an expert on this 
 whether the independence assumption makes sense or not. 
 \newpage
 
+
 \section{Excerise PH 3.5}
 \paragraph{(a)}
 As long as we model both the sampling distribution and the prior all within the exponential family, the resulting
@@ -75,10 +76,10 @@ of each prior $p(\phi)$ that is updated by the data $Y$ separately.
 \end{align*}
 
 \begin{align*}
-  p(\phi|Y) &\propto p(Y|\phi)\tilde{p}(\phi) \\
+  \tilde{p}(\phi|Y) &\propto p(Y|\phi)\tilde{p}(\phi) \\
     &\propto {c(\phi)}^{n} \exp(\phi \sum_{i=1}^{n} t(y_i)) \sum_{k=1}^{K} w_k {c(\phi)}^{n_0^{(k)}} \exp(n_0^{(k)} t_0^{(k)} \phi) \\
     &\propto \sum_{k=1}^{K} w_k \cdot {c(\phi)}^{n_0^{(k)} + n} \exp(\phi \times (n_0^{(k)} t_0^{(k)} + \sum_{i=1}^{n} t(y_i))) \\
-    &\propto \sum_{k=1}^{K} w_k \cdot p_k(\phi | n_0^{(k)}+n, n_0^{(k)} t_0^{(k)} + n \overline{t}(Y))
+    &\propto \sum_{k=1}^{K} w_k \cdot p_k(\phi | n_0^{(k)}+n, (n_0^{(k)} t_0^{(k)} + n \overline{t}(Y)) / (n_0^{(k)} + n))
 \end{align*}
 
 \paragraph{(b)}
@@ -87,22 +88,68 @@ First we write the Poisson distribution in its exponential family form as below.
   p(y|\theta) &= \frac{1}{y!} \theta^y e^{-\theta} \thicksim Poisson(\theta) \\
     &\propto \theta^y e^{-\theta} \\
     &= e^{y \log(\theta)} e^{-\theta} \\
-    &= \exp[y\phi - e^{\phi}] \\ \\
+    &= \exp(y\phi - e^{\phi}) \\ \\
   \therefore \quad & \phi = \log(\theta) \\
-    & c(\phi) = \exp({A(\phi)}^{-1}) = \exp(e^{-\phi}) \\
+    & c(\phi) = \exp({-A(\phi)}) = \exp(-e^{\phi}) \\
     & t(y) = y \\
-  p(y|\theta) &\propto \exp(e^{-\phi}) e^{\phi y}
+  p(y|\theta) &\propto \exp(-e^{\phi}) e^{\phi y}
 \end{align*}
-Hence, its conjugate prior Gamma has the form of $p(\phi|n_0, t_0) \propto \exp(n_0 e^{-\phi}) e^{n_0 t_0 \phi}$.
+Hence, its conjugate prior Gamma has the form of $p(\phi|n_0, t_0) \propto \exp(-n_0 e^{\phi}) e^{n_0 t_0 \phi}$.
 And the posterior distribution is
 \begin{align*}
-  \tilde{p}(\phi|Y) &\propto \sum_{k=1}^{K} w_k \exp(\alpha^{(k)} \phi + \beta^{(k)} e^{-\phi}) \\
+  \tilde{p}(\phi|Y) &\propto \sum_{k=1}^{K} w_k \exp(\alpha^{(k)} \phi - \beta^{(k)} e^{\phi}) \\
     \alpha^{(k)} &= n_0^{(k)} t_0^{(k)} + n\overline{y} \qquad\quad \beta^{(k)} = n_0^{(k)} + n \qquad\quad \overline{y} = \frac{1}{n} \sum_{i=1}^{n} y_i
 \end{align*}
 \newpage
 
 
 \section{Excerise PH 3.8}
+\paragraph{(a)}
+To encode the belief that 20\% of coins are symmetric and the remainings have a bias towards either head or tail, I
+will arbitrarily choose a total sample size of 18 for the mixture of beta priors assuming Diaconis and Ylvisaker
+should have at least examed these amounts of coin for their statement. To be precise, the resulting prior
+looks like below.
+
+\begin{align*}
+  p(\theta) &= 0.5 \cdot Beta(a=6, b=12) + 0.5 \cdot Beta(a=12, b=6)
+\end{align*}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{3.8.a.png}
+  \captionsetup{justification=centering}
+  \caption{Coin Prior of $\theta$}
+\end{figure*}
+
+\paragraph{(b)}
+I had a year-1999 penny tossed 50 times and obtained 29 heads, surprisingly.
+
+\paragraph{(c)}
+After incorporating the experiment data with a binomial likelihood, the resulting $\theta$ posterior for the year-1999
+penny looks like the following.
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{3.8.c.png}
+  \captionsetup{justification=centering}
+  \caption{Coin Posterior of $\theta$ --- 1999 penny}
+\end{figure*}
+
+\paragraph{(d)}
+After seeing the experiment result, I started to believe in Diaconis and Ylvisaker's statement more strongly.
+Nevertheless, with only one sample, I do not think it is appropriate to believe that the coin denomination or the
+year has anything to do with the bias. Hence, I only 1.5x times the sample size from 18 to 27.
+
+\vspace{0.15in}
+
+This time with nickel from 2013, I obtained 21 heads instead out of 50 tosses. Therefore, here is the
+$\theta$ posterior for this nickel.
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{3.8.d.png}
+  \captionsetup{justification=centering}
+  \caption{Coin Posterior of $\theta$ --- 2013 nickel}
+\end{figure*}
 
 \newpage
 
