@@ -43,10 +43,8 @@ The $\theta_B$ posterior has a mean of 8.93, variances of 0.638, and 95\% confid
 
 \newpage
 \paragraph{(b)}
-As long as we keep the $12 \times n0$ term, the posterior is hard to get close to the $\theta_A$ posterior,
-which has a mean of 11.85, because the $\theta_B$ posterior is a weighted average between the prior and
-data $Y_B$, which has an average of 8.4 tumors instead of 11.7 from $Y_A$. Hence, we need a prior like
-$Gamma(14 \times n0, n0)$ or similar to make the $\theta_B$ posterior get closer to the $\theta_A$ posterior.
+It is hard to get the expectation of $\theta_B$ close to the $\theta_A$ posterior expectation. It only happens
+after $n0$ goes over 275+. Or we can also use a prior that is similar to $Gamma(14 \times n0, n0)$ to make it easier.
 
 \begin{figure*}[!h]
   \centering
@@ -56,9 +54,9 @@ $Gamma(14 \times n0, n0)$ or similar to make the $\theta_B$ posterior get closer
 \end{figure*}
 
 \paragraph{(c)}
-The dependency between $\theta_A$ and $\theta_B$ is worth considering, and it mostly has to do with the
-relationship between the two strains. It is better to consult an expert on this matter. Then we can decide
-whether the independence assumption makes sense or not. 
+I do not think it is a good idea to transfer the knowledge from $\theta_A$ to use it in $\theta_B$ inference
+based on the given information. They behave differently based on the data given. In other words,
+we can assume they are conditionally independent given the data $\mathbf{X}$.
 \newpage
 
 
