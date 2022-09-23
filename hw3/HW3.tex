@@ -130,15 +130,20 @@ and $b$ in terms of $n_0$ and $t_0$.
 \end{align*}
 Therefore, the gamma mixture has the following form.
 \begin{align*}
-  \tilde{p}(\eta) &= \sum_{k=1}^K w_k \frac{n_0^{n_0 t_0}}{\Gamma(n_0 t_0)} \exp[n_0^{(k)} t_0^{(k)} \eta - n_0^{(k)} e^{\eta}]
+  \tilde{p}(\eta) &= \sum_{k=1}^K w_k 
+    \frac{{n_0^{(k)}}^{n_0^{(k)} t_0^{(k)}}}{\Gamma(n_0^{(k)} t_0^{(k)})}
+    \exp[n_0^{(k)} t_0^{(k)} \eta - n_0^{(k)} e^{\eta}]
 \end{align*}
 Now, we can write the $\theta$ posterior through a change of variable.
 \begin{align*}
   \tilde{p}(\eta|X) &\propto p(X|\eta)\tilde{p}(\eta) \\
     &= (\prod_{i=1}^n \frac{1}{x_i !}) \exp[\eta \, n \bar{X} - n e^\eta]
-    \sum_{k=1}^K w_k \frac{n_0^{n_0 t_0}}{\Gamma(n_0 t_0)} \exp[n_0^{(k)} t_0^{(k)} \eta - n_0^{(k)} e^{\eta}] \\
+    \sum_{k=1}^K w_k
+      \frac{{n_0^{(k)}}^{n_0^{(k)} t_0^{(k)}}}{\Gamma(n_0^{(k)} t_0^{(k)})}
+      \exp[n_0^{(k)} t_0^{(k)} \eta - n_0^{(k)} e^{\eta}] \\
     &= \sum_{k=1}^K w_k^{\prime} \exp[(n_0^{(k)} t_0^{(k)} + n\bar{X}) \eta - (n_0^{(k)} + n) e^{\eta}]
-      && w_k^{\prime} = w_k \frac{n_0^{n_0 t_0}}{\Gamma(n_0 t_0)} (\prod_{i=1}^n \frac{1}{x_i !}) \\
+      && w_k^{\prime} = w_k \frac{{n_0^{(k)}}^{n_0^{(k)} t_0^{(k)}}}{\Gamma(n_0^{(k)} t_0^{(k)})}
+        (\prod_{i=1}^n \frac{1}{x_i !}) \\
   \tilde{p}_\theta(\theta|X)
     &= \sum_{k=1}^K w_k^{\prime}
       \exp[(n_0^{(k)} t_0^{(k)} + n\bar{X}) \log\theta - (n_0^{(k)} + n) e^{\log\theta}] \frac{1}{\theta} \\
