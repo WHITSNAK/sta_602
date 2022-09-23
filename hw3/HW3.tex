@@ -11,19 +11,20 @@
 \captionsetup{justification=raggedright, singlelinecheck=false}
 
 
-\title{STA 602 HW2}
+\title{STA 602 HW3}
 \author{Ryan Tang}
-\date{September 11th 2022}
+\date{September 17th 2022}
 
 \begin{document}
 \maketitle
 
 \section{Excerise PH 3.3}
 \paragraph{(a)}
+Here, we first define the prior, the generative distribution, and the general posterior for Poisson-Gamma pair.
+
 \begin{align*}
-  Y_{i \in n} &\overset{iid}{\thicksim} Poisson(\theta) \\
-  p(Y|\theta) &= \prod_{i=1}^{n} \frac{1}{y_i!} \theta^{y_i} e^{-\theta} \\
-    &= c(y_1, y_2, \dots, y_n) \theta^{\sum y_i} e^{-n\theta}
+  p(Y|\theta) &= \prod_{i=1}^{n} \frac{1}{y_i!} \theta^{y_i} e^{-\theta} && Y_{i \in n} \overset{iid}{\thicksim} Poisson(\theta) \\
+    &= c(Y) \theta^{\sum y_i} e^{-n\theta}
 \end{align*}
 \begin{align*}
   p(\theta) &\thicksim Gamma(a, b) \\
@@ -44,7 +45,8 @@ The $\theta_B$ posterior has a mean of 8.93, variances of 0.638, and 95\% confid
 \newpage
 \paragraph{(b)}
 It is hard to get the expectation of $\theta_B$ close to the $\theta_A$ posterior expectation. It only happens
-after $n0$ goes over 275+. Or we can also use a prior that is similar to $Gamma(14 \times n0, n0)$ to make it easier.
+after $n0$ goes over 275+, the prior sample size. Or we can also use a prior that is similar to
+$Gamma(14 \times n0, n0)$ to make it easier with smaller prior sample size.
 
 \begin{figure*}[!h]
   \centering
@@ -54,7 +56,7 @@ after $n0$ goes over 275+. Or we can also use a prior that is similar to $Gamma(
 \end{figure*}
 
 \paragraph{(c)}
-I do not think it is a good idea to transfer the knowledge from $\theta_A$ to use it in $\theta_B$ inference
+I do not think it is a good idea to transfer the knowledge from $\theta_A$ to use it in inferening $\theta_B$
 based on the given information. They behave differently based on the data given. In other words,
 we can assume they are conditionally independent given the data $\mathbf{X}$.
 \newpage
@@ -64,52 +66,97 @@ we can assume they are conditionally independent given the data $\mathbf{X}$.
 \paragraph{(a)}
 As long as we model both the sampling distribution and the prior all within the exponential family, the resulting
 posterior is also an exponential family distribution. The derivation also generalizes to priors that are
-a mixture of exponential family distributions. The resulting posterior is simply a weighted average
-of each prior $p(\phi)$ that is updated by the data $Y$ separately.
+a mixture of exponential family distributions. The resulting posterior is a weighted average
+of each prior $p(\phi)$ that is updated by the data $X$ separately with a minor tweak on the scaling constants.
+
+\begin{proof}
+Let the sampling distributions under the exponential family form be,
 \begin{align*}
-  p(y|\phi) &= h(y)c(\phi)e^{\phi t(y)} \\
-  p(Y|\phi) &= \prod_{i=1}^{n} h(y_i)c(\phi)e^{\phi t(y_i)} && Y_{i \in n} \overset{iid}{\thicksim} p(y|\phi) \\
-    &\propto {c(\phi)}^{n} \exp(\phi \sum_{i=1}^{n} t(y_i)) \\
-  \tilde{p}(\phi) &= \sum_{k=1}^{K} w_k p_k(\phi) && p(\phi) = \kappa(n_0, t_0) {c(\phi)}^{n_0} e^{n_0 t_0 \phi}
+  p(x|\eta) &= h(x)\exp[\eta t(x) - A(\eta)] \\
+  p(X|\eta)
+    &= \prod_{i=1}^{n} h(x_i)\exp[\eta t(x_i) - A(\eta)]
+      && X_{i \in n} \overset{iid}{\thicksim} p(x|\eta) \\
+    &= (\prod_{i=1}^{n} h(x_i)) \exp[\eta \sum_{i=1}^{n} t(x_i) - n A(\eta)] \\
+    &= (\prod_{i=1}^{n} h(x_i)) \exp[\eta \, n \bar{t}(X) - n A(\eta)]
+      && \bar{t}(X) = \frac{1}{n} \sum_{i=1}^{n} t(x_i) \\
 \end{align*}
+where $h(x)$ is the scaling constant, $\eta$ is the natural parameter, $t(x)$ is the sufficient statistics,
+and $A(\eta)$ is the log partition function. Then, the mixture proof be the form of
+\begin{align*}
+  \tilde{p}(\eta) &= \sum_{k=1}^{K} w_k p_k(\eta)
+    && p_k(\eta) = \kappa(n_0^{(k)}, t_0^{(k)}) \exp[\eta \, n_0^{(k)} t_0^{(k)} - n_0^{(k)} A(\eta)]
+\end{align*}
+where $w_k > 0, \forall k \in K$, and $\kappa$ is the scaling constant for the prior. Hence we can write
+the posterior as follow.
 
 \begin{align*}
-  \tilde{p}(\phi|Y) &\propto p(Y|\phi)\tilde{p}(\phi) \\
-    &\propto {c(\phi)}^{n} \exp(\phi \sum_{i=1}^{n} t(y_i)) \sum_{k=1}^{K} w_k {c(\phi)}^{n_0^{(k)}} \exp(n_0^{(k)} t_0^{(k)} \phi) \\
-    &\propto \sum_{k=1}^{K} w_k \cdot {c(\phi)}^{n_0^{(k)} + n} \exp(\phi \times (n_0^{(k)} t_0^{(k)} + \sum_{i=1}^{n} t(y_i))) \\
-    &\propto \sum_{k=1}^{K} w_k \cdot p_k(\phi | n_0^{(k)}+n, (n_0^{(k)} t_0^{(k)} + n \overline{t}(Y)) / (n_0^{(k)} + n))
+  p(\eta|X) &\propto p(X|\eta)\tilde{p}(\eta) \\
+    &= \prod_{i=1}^n p(x_i|\eta) \cdot \sum_{k=1}^{K} w_k p_k(\eta|n_0^{(k)}, t_0^{(k)}) \\
+    &= (\prod_{i=1}^{n} h(x_i)) \exp[\eta \, n \bar{t}(X) - n A(\eta)]
+       \sum_{k=1}^{K} w_k \kappa(n_0^{(k)}, t_0^{(k)}) \exp[\eta \, n_0^{(k)} t_0^{(k)} - n_0^{(k)} A(\eta)] \\
+    &= \sum_{k=1}^{K} w_k^{\prime} \exp[\eta(n_0^{(k)} t_0^{(k)} + n\bar{t}(X)) - (n_0^{(k)} + n) A(\eta)] \\
+  w_k^{\prime} &= w_k \, \kappa(n_0^{(k)}, t_0^{(k)}) \prod_{i=1}^{n} h(x_i)
 \end{align*}
+
+Lastly, the original $p(\theta|X)$ posterior can be obtained through a change of variable.
+\begin{align*}
+  p_{\theta}(\theta|X) = p_{\eta}(g^{-1}(\theta)|X) \,\, |\frac{d}{d\theta}g^{-1}(\theta)| && \eta = g^{-1}(\theta)
+\end{align*}
+\end{proof}
+\newpage
 
 \paragraph{(b)}
-First we write the Poisson distribution in its exponential family form as below.
+\begin{proof}
+First, we write the Poisson distribution in its exponential family form.
 \begin{align*}
-  p(y|\theta) &= \frac{1}{y!} \theta^y e^{-\theta} \thicksim Poisson(\theta) \\
-    &\propto \theta^y e^{-\theta} \\
-    &= e^{y \log(\theta)} e^{-\theta} \\
-    &= \exp(y\phi - e^{\phi}) \\ \\
-  \therefore \quad & \phi = \log(\theta) \\
-    & c(\phi) = \exp({-A(\phi)}) = \exp(-e^{\phi}) \\
-    & t(y) = y \\
-  p(y|\theta) &\propto \exp(-e^{\phi}) e^{\phi y}
+  p(x|\theta) &= \frac{1}{x!} \theta^x e^{-\theta} \thicksim Poisson(\theta) \\
+    &= \frac{1}{x!} \theta^x e^{-\theta} \\
+  p(x|\eta) &= \frac{1}{x!} \exp[x\eta - e^{\eta}] \\ \\
+  \therefore \quad 
+    & \eta = \log\theta, \quad A(\eta) = e^{\eta} \\
+    & t(x) = x, \quad h(x) = \frac{1}{x!} \\
+  p(X|\eta) &= (\prod_{i=1}^n \frac{1}{x_i !}) \exp[\eta \, n \bar{X} - n e^\eta]
 \end{align*}
-Hence, its conjugate prior Gamma has the form of $p(\phi|n_0, t_0) \propto \exp(-n_0 e^{\phi}) e^{n_0 t_0 \phi}$.
-And the posterior distribution is
+Hence, its conjugate Gamma prior has to hold the form of
+$p(\eta) = \kappa(n_0, t_0)\exp[n_0 t_0 \eta - n_0 e^{\eta}]$.
+With a change of variable from $\theta$ to $\eta$, we can recover the scaling constant $\kappa$ and write both $a$
+and $b$ in terms of $n_0$ and $t_0$.
 \begin{align*}
-  \tilde{p}(\phi|Y) &\propto \sum_{k=1}^{K} w_k \exp(\alpha^{(k)} \phi - \beta^{(k)} e^{\phi}) \\
-    \alpha^{(k)} &= n_0^{(k)} t_0^{(k)} + n\overline{y} \qquad\quad \beta^{(k)} = n_0^{(k)} + n \qquad\quad \overline{y} = \frac{1}{n} \sum_{i=1}^{n} y_i
+  p(\theta|a, b) &= \frac{b^a}{\Gamma(a)} \theta^{a-1} e^{-b\theta}
+      && \theta = g^{-1}(\eta) = e^{\eta} \\
+  p(\eta|a, b) &= \frac{b^a}{\Gamma(a)} e^{\eta(a-1)} e^{-b e^\eta} e^\eta \\
+    &= \frac{b^a}{\Gamma(a)} \exp[\eta a - b e^\eta] \\
+  p(\eta | a = n_0 t_0, b = n_0) &= \frac{n_0^{n_0 t_0}}{\Gamma(n_0 t_0)} \exp[\eta \, n_0 t_0 - n_0 e^\eta]
 \end{align*}
+Therefore, the gamma mixture has the following form.
+\begin{align*}
+  \tilde{p}(\eta) &= \sum_{k=1}^K w_k \frac{n_0^{n_0 t_0}}{\Gamma(n_0 t_0)} \exp[n_0^{(k)} t_0^{(k)} \eta - n_0^{(k)} e^{\eta}]
+\end{align*}
+Now, we can write the $\theta$ posterior through a change of variable.
+\begin{align*}
+  \tilde{p}(\eta|X) &\propto p(X|\eta)\tilde{p}(\eta) \\
+    &= (\prod_{i=1}^n \frac{1}{x_i !}) \exp[\eta \, n \bar{X} - n e^\eta]
+    \sum_{k=1}^K w_k \frac{n_0^{n_0 t_0}}{\Gamma(n_0 t_0)} \exp[n_0^{(k)} t_0^{(k)} \eta - n_0^{(k)} e^{\eta}] \\
+    &= \sum_{k=1}^K w_k^{\prime} \exp[(n_0^{(k)} t_0^{(k)} + n\bar{X}) \eta - (n_0^{(k)} + n) e^{\eta}]
+      && w_k^{\prime} = w_k \frac{n_0^{n_0 t_0}}{\Gamma(n_0 t_0)} (\prod_{i=1}^n \frac{1}{x_i !}) \\
+  \tilde{p}_\theta(\theta|X)
+    &= \sum_{k=1}^K w_k^{\prime}
+      \exp[(n_0^{(k)} t_0^{(k)} + n\bar{X}) \log\theta - (n_0^{(k)} + n) e^{\log\theta}] \frac{1}{\theta} \\
+    &= \sum_{k=1}^K w_k^{\prime} \theta^{n_0^{(k)} t_0^{(k)} + n\bar{X} - 1} e^{-(n_0^{(k)}+n)\theta}
+\end{align*}
+\end{proof}
 \newpage
 
 
 \section{Excerise PH 3.8}
 \paragraph{(a)}
 To encode the belief that 20\% of coins are symmetric and the remainings have a bias towards either head or tail, I
-will arbitrarily choose a total sample size of 18 for the mixture of beta priors assuming Diaconis and Ylvisaker
-should have at least examed these amounts of coin for their statement. To be precise, the resulting prior
-looks like below.
+will arbitrarily choose a total sample size of 36 for the bias beta and 10 sample size for the symmetry beta
+in the mixture assuming Diaconis and Ylvisaker should have at least examed these amounts of coin for their
+statement. To be precise, the resulting prior looks like below.
 
 \begin{align*}
-  p(\theta) &= 0.5 \cdot Beta(a=6, b=12) + 0.5 \cdot Beta(a=12, b=6)
+  p(\theta) &\propto 0.4 Beta(12, 24) + 0.4 Beta(24, 12) + 0.2 Beta(5, 5)
 \end{align*}
 \begin{figure*}[!h]
   \centering
@@ -135,7 +182,8 @@ penny looks like the following.
 \paragraph{(d)}
 After seeing the experiment result, I started to believe in Diaconis and Ylvisaker's statement more strongly.
 Nevertheless, with only one sample, I do not think it is appropriate to believe that the coin denomination or the
-year has anything to do with the bias. Hence, I only 1.5x times the sample size from 18 to 27.
+year has anything to do with the bias. Although, the biasness indeed exists; hence, I only 1.5x times
+the prior sample sizes.
 
 \vspace{0.15in}
 
@@ -180,7 +228,7 @@ not enough data size, or perhaps Poisson is just not a good model for the data.
 \paragraph{(a)}
 Given the prior $\theta \thicksim Gamma(a=10, b=1)$ and the sampling model
 $X_{i \in n} \overset{iid}{\thicksim} Poisson(\theta)$, the posterior is also a gamma distribution.
-Now we know we received a total of 200 call from 10 different days, the Posterior
+Now we know we received a total of 200 call from 10 different days, the posterior
 \[ \theta|\mathbf{X} \thicksim Gamma(a=210, b=11) \]
 The $\theta$ estimate that minimizes the L2 loss is the mean, 19.09. And the $\theta$ estimate
 that minimizes the L1 loss is the median, 19.06.
