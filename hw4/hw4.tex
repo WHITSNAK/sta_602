@@ -116,7 +116,7 @@ Given the $\theta|X$ posterior, we can write the Bayes estimator and the resulti
 \end{align*}
 
 \paragraph{(b)}
-When the true $\theta$ lies between the $[6.25, 15.5]$ range, the Bayes estimator tends to have an overall lower MSE than the MLE estimator. It is mostly that the MLE estimator tends to have higher variances. Hence, some bias in Bayes estimator can actually improve the general prediction. It is also because we have a relatively small sample size, $n = 10$.
+When the true $\theta$ lies between the $[6.25, 15.5]$ range, the Bayes estimator tends to have an overall lower MSE than the MLE estimator.mainly mostly because the MLE estimator tends to have higher variances. Hence, some bias in Bayes estimator can actually improve the general prediction. It is also because we have a relatively small sample size, $n = 10$.
 
 \begin{figure*}[!h]
   \centering
@@ -161,7 +161,7 @@ We can write $\delta_5$ in terms of $\delta_1$ and $\delta_2$. We can see it put
 \end{align*}
 
 \paragraph{(d)}
-Now instead of plotting MSE, here we estimated MAE using Monte Carlo. Still the same 5 estimators, below are the MAE comparisons.
+Now instead of plotting MSE, here we estimated MAE using Monte Carlo. Still the same 5 estimators, below are the MAE comparisons (Figures 5 and 6). I noticed that the loss function is longer convex; many humps can make optimization stuck in a local maxima. However, the general Bayesian update behaviors stay directionally similar. Lastly, it looks like the $\delta_5$ L2 minimax estimator is still a minimax estimator in the L1 context.
 \begin{figure*}[!h]
   \centering
   \includegraphics[width=0.7\textwidth]{3.d.1.png}
