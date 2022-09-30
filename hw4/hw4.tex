@@ -125,8 +125,42 @@ When the true $\theta$ lies between the $[6.25, 15.5]$ range, the Bayes estimato
   \caption{MSE Comparison}
 \end{figure*}
 
-\section{Exercise 3}
 
+\section{Exercise 3}
+\paragraph{(a)}
+The MSE and its corresponding variances and biases decomposition for estimator $\delta_5$ are as follows.
+\begin{align*}
+    \delta_5(X) &= \frac{X+\sqrt{n}/2}{n + \sqrt{n}} && X \thicksim Binomial(n, \theta) \\ 
+    \text{MSE}(\delta_5(X), \theta) &= \mathbb{E}[(\delta_5(X) - \theta)^2 | \theta] \\
+        &= \text{Var}[\frac{X+\sqrt(n)/2}{n + \sqrt{n}}] + (\mathbf{E}[\frac{X+\sqrt{n}/2}{n + \sqrt{n}}] - \theta)^2 \\
+        &= \frac{\text{Var}(X)}{(n+\sqrt{n}^2} + (\frac{\mathbf{E}[X] + \sqrt{n}/2}{n + \sqrt{n}} - \theta)^2 \\
+        &= \frac{n\theta(1-\theta)}{(n+\sqrt{n})^2} + (\frac{n\theta + \sqrt{n}/2}{n+\sqrt{n}} - \theta)^2
+\end{align*}
+
+\paragraph{(b)}
+I have plotted all MSE concerning the true $\theta$ for the comparison below (Figure 3 and Figure 4). We can see that the $\delta_5$ estimator performs similarly to the uniform prior estimator when the data size is small. However, even when we increased $n$ to 100, the MSE generated from the $\delta_5$ is still quite flat. In other words, it is relatively invariant to the sample size.
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{3.b.png}
+  \captionsetup{justification=centering}
+  \caption{Political Poll MSE Comparison, $n = 5$}
+\end{figure*}
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{3.b.2.png}
+  \captionsetup{justification=centering}
+  \caption{Political Poll MSE Comparison, $n = 100$}
+\end{figure*}
+
+\paragraph{(c)}
+We can write $\delta_5$ in terms of $\delta_1$ and $\delta_2$. We can see it puts a square root of weight on the prior. With a typical Bayesian prior, the weights are constant so that with sufficient data, it can wash away the prior effect. However, in the case of $\delta_5$, we are putting more weight on the prior the more data we have. Hence it prolongated the prior effect. I think that is why it is called the minimax estimator. It minimizes the maximum risk.
+\begin{align*}
+    \delta_5 &= \frac{n}{n + \sqrt{n}} \delta_1 + \frac{\sqrt{n}}{n+\sqrt{n}} \delta_2
+\end{align*}
+
+\paragraph{(d)}
 
 
 \end{document}
