@@ -1,0 +1,95 @@
+\documentclass[11pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper, margin=0.5in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[font=scriptsize]{caption}
+\usepackage{subcaption}
+\graphicspath{ {.} }
+\captionsetup{justification=raggedright, singlelinecheck=false}
+
+
+\title{STA 602 HW2}
+\author{Ryan Tang}
+\date{September 30th 2022}
+
+\begin{document}
+\maketitle
+
+\section{Exercise 3.9}
+\paragraph{(a)}
+We can express the Galenshore distribution in its exponential family form, and assuming $a$ is a constant makes things simpler.
+First, Galenshore's kernel has the following form.
+\begin{align*}
+    Galenshore \thicksim p(y|a, \theta)
+        &= \frac{2}{\Gamma(a)} \theta^{2a} y^{2a-1} e^{-\theta^2 y^2} \\
+        &\propto y^{2a-1} e^{-\theta^2 y^2}
+\end{align*}
+Second, we write it in the exponential family format under the condition that all parameters are positive.
+\begin{align*}
+    p(y|a, \theta)
+        &= \frac{2}{\Gamma(a)}\theta^{2a} \exp [(2a-1) \log y - \theta^2 y^2] \\
+    h(y) &= y^{2a-1} \quad c(\eta) = \frac{-2}{\Gamma(a)}\eta^a \quad
+    \eta = -\theta^2 \quad t(y) = y^2 \\
+    p(y|\eta) &= h(y) c(\eta) \exp[\eta t(y)]
+\end{align*}
+Therefore, $\eta$ has a conjugate prior in the exponential family with the following form. And, we can retrieve the prior in terms of $\theta$ using change of variable. 
+\begin{align*}
+    p(\eta|n_0, t_0) &\propto c(\eta)^{n0} \exp[\eta n_0 t_0] \\
+    p(\theta|n_0, t_0)
+        &\propto (\frac{2}{\Gamma(a)}\theta^{2a})^{n_0} \exp[-\theta^2 n_0 t_0] \cdot |-2\theta| \\
+        &\propto \theta^{2a n_0 + 1} e^{-\theta^2 n_0 t_0}
+\end{align*}
+Here if we view $\theta$ just like $y$, we get a Galenshore distribution after some algebra solving the values for the two parameters. Hence, the conjugate prior is a Galenshore distribution for the Galenshore sampling model. 
+\begin{align*}
+    p(\theta) &\thicksim Galenshore(\alpha=an_0 +1, \beta=\sqrt{n_0 t_0}) \\
+        &= \frac{2}{\Gamma(\alpha)} \beta^{2\alpha}\theta^{2\alpha-1}e^{-\theta^2 \beta^2}
+\end{align*}
+
+\paragraph{(b)}
+Given the iid sampling model, here is the posterior, which follows the typical exponential family updates.
+\begin{align*}
+    p(Y|\theta)
+        &= \prod_i p(y_i|\theta) \\
+        &= (\frac{2}{\Gamma{a}} \theta^{2a})^n \exp[(2a-1) \sum_i \log y_i - \theta^2 \sum_i y_i^2] \\
+    p(\theta|Y) &\propto p(Y|\theta) p(\theta) \\
+        &=
+            (\frac{2}{\Gamma{a}})^n \theta^{2an} \exp[(2a-1) \sum_i \log y_i] e^{- \theta^2 \sum_i y_i^2}
+            \frac{2}{\Gamma(an_0 + 1)} (n_0 t_0)^{2a n_0 + 2} \theta^{2an_0+1} e^{-\theta^2 n_0 t_0} \\
+        &\propto \theta^{2a(n_0+n)+1} e^{-\theta^2(n_0 t_0 + \sum_i y_i^2)} \\
+        &\thicksim Galenshore(\alpha = a (n_0+n) + 1, \beta = \sqrt{n_0 t_0 + \sum_i y_i^2})
+\end{align*}
+
+\paragraph{(c)}
+As we would expect that the Galenshore distribution, which belongs to the exponential family, has sufficient statistics given by $t(y) = y^2$.
+\begin{proof}
+\begin{align*}
+    \frac{p(\theta_1|Y)}{p(\theta_2|Y)}
+        &= \frac{{\theta_1}^{2a(n_0+n)+1} \exp[-(n_0t_0+\sum_i y_i^2)\theta_1^2]}{{\theta_2}^{2a(n_0+n)+1} exp[-(n_0t_0+\sum_i y_i^2)\theta_2^2]} \\
+        &= ({\frac{\theta_1}{\theta_2}})^{2a(n_0+n)+1} \exp[-(n_0t_0+\sum_i y_i^2)(\theta_1^2 - \theta_2^2)]
+\end{align*}
+\end{proof}
+
+\paragraph{(d)}
+\begin{align*}
+    E[\theta|Y] = \frac{\Gamma(a(n_0+n)+3/2)}{\Gamma(a(n_0+n)+1) \sqrt{n_0t_0 + \sum_i y_i^2}}
+\end{align*}
+
+\paragraph{(e)}
+The general form of the posterior predictive density is given below.
+\begin{proof}
+\begin{align*}
+    p(\tilde{y}|Y) &= \int p(\tilde{y}|\theta, Y) p(\theta|Y) d\theta \\
+        &= \int p(\tilde{y}|\eta, Y) p(\eta|Y) d\eta \\
+        &= \int h(\tilde{y})c(\eta)\exp[\eta t(\tilde{y})] \cdot \kappa(\alpha, \beta)c(\eta)^{n_0+n} \exp[\eta(n_0t_0+n\bar{t}(Y)] d\eta \\
+        &= h(\tilde{y}) \kappa(\alpha, \beta) \int c(\eta)^{n_0+n+1} \exp[\eta(n_0t_0+n\bar{t}(Y)+t(\tilde{y})] d\eta \\
+        &= h(\tilde{y}) 
+            \frac{\kappa(\alpha=a(n_0+n)+1, \beta=\sqrt{n_0t_0 + \sum_i y_i^2})}
+                 {\kappa(\alpha=a(n_0+n+1)+1, \beta=\sqrt{n_0t_0 + \sum_i y_i^2 + \tilde{y}^2})} \\ \\
+    \kappa &= \frac{2}{\Gamma(\alpha)} \beta^{2\alpha} \quad h(y) = y^{2a-1}
+\end{align*}
+\end{proof}
+
+\end{document}
