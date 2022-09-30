@@ -18,7 +18,7 @@
 \begin{document}
 \maketitle
 
-\section{Exercise 3.9}
+\section{Exercise PH 3.9}
 \paragraph{(a)}
 We can express the Galenshore distribution in its exponential family form, and assuming $a$ is a constant makes things simpler.
 First, Galenshore's kernel has the following form.
@@ -42,11 +42,18 @@ Therefore, $\eta$ has a conjugate prior in the exponential family with the follo
         &\propto (\frac{2}{\Gamma(a)}\theta^{2a})^{n_0} \exp[-\theta^2 n_0 t_0] \cdot |-2\theta| \\
         &\propto \theta^{2a n_0 + 1} e^{-\theta^2 n_0 t_0}
 \end{align*}
-Here if we view $\theta$ just like $y$, we get a Galenshore distribution after some algebra solving the values for the two parameters. Hence, the conjugate prior is a Galenshore distribution for the Galenshore sampling model. 
+Here if we view $\theta$ just like $y$, we get a Galenshore distribution after some algebra solving the values for the two parameters. Hence, the conjugate prior is a Galenshore distribution for the Galenshore sampling model. See Figure 1 for density plot with various parameters.
 \begin{align*}
     p(\theta) &\thicksim Galenshore(\alpha=an_0 +1, \beta=\sqrt{n_0 t_0}) \\
         &= \frac{2}{\Gamma(\alpha)} \beta^{2\alpha}\theta^{2\alpha-1}e^{-\theta^2 \beta^2}
 \end{align*}
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{1.a.png}
+  \captionsetup{justification=centering}
+  \caption{Galenshore Prior Parameterized by $n_0$ and $t_0$}
+\end{figure*}
 
 \paragraph{(b)}
 Given the iid sampling model, here is the posterior, which follows the typical exponential family updates.
@@ -91,5 +98,32 @@ The general form of the posterior predictive density is given below.
     \kappa &= \frac{2}{\Gamma(\alpha)} \beta^{2\alpha} \quad h(y) = y^{2a-1}
 \end{align*}
 \end{proof}
+
+
+\section{Exercise 2}
+\paragraph{(a)}
+Given the $\theta|X$ posterior, we can write the Bayes estimator and the resulting MSE with the following form.
+\begin{align*}
+    \theta &\thicksim Gamma(a=10, b=1) \\
+    \theta|X &\thicksim Gamma(a=210, b=11) \\
+    X &\thicksim Poisson(\theta) \\
+    \delta_{bayes}(X) &= \frac{X+10}{n+1} && X=200 \quad n=10 \\ \\ 
+    \text{MSE}(\delta_{bayes}(X), \theta) &= \mathbb{E}[(\delta(X) - \theta)^2|\theta] \\
+        &= \text{Var}(\frac{X+10}{n+1}) + (\mathbb{E}[\frac{X+10}{n+1}] - \theta)^2 \\
+        &= \frac{\sum_i \mathbb{E}[X_i|\theta]}{(n+1)^2} + (\frac{\sum_i \mathbb{E}[X_i] + 10}{n+1} - \theta)^2\\
+        &= \frac{n\theta}{(n+1)^2} + (\frac{n\theta + 10}{n+1} - \theta)^2 \\
+        &= \text{Variance} + \text{Bias}^2
+\end{align*}
+
+\paragraph{(b)}
+When the true $\theta$ lies between the $[6.25, 15.5]$ range, the Bayes estimator tends to have an overall lower MSE than the MLE estimator. It is mostly that the MLE estimator tends to have higher variances. Hence, some bias in Bayes estimator can actually improve the general prediction. It is also because we have a relatively small sample size, $n = 10$.
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.9\textwidth]{1.a.png}
+  \captionsetup{justification=centering}
+  \caption{Galenshore Prior Parameterized by $n_0$ and $t_0$}
+\end{figure*}
+
 
 \end{document}
