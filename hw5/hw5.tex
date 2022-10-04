@@ -91,11 +91,27 @@ According to Exercise 3.4, we have a mixture of beta prior for $\theta$ and a Bi
 \newpage
 
 \paragraph{(b)}
+Since we have derived the weight for each individual Beta component, we can generate the posterior samples through MC. Below is the density estimation of 1,000,000 posterior samples and the estimated 95\% confidence interval, [0.2037, 0.4580].
 
-
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{4.4.b.png}
+  \captionsetup{justification=centering}
+  \caption{Posterior KDE using Monte Carlo}
+\end{figure*}
 
 
 \section{Exercise 4.5}
+
+
+
 \section{Exercise 4.6}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{4.6.png}
+  \captionsetup{justification=centering}
+  \caption{Comparison between the uniform $\theta$ and its log-odd counterpart $\gamma$}
+\end{figure*}
+
 
 \end{document}
