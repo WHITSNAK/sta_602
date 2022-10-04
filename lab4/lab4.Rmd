@@ -1,6 +1,6 @@
 ---
 title: 'STA 602 Lab 4'
-author: "Student"
+author: "Ryan Tang"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   pdf_document: default
@@ -17,7 +17,7 @@ require(loo)
 require(readxl)
 require(ggplot2)
 
-setwd("~/workspace/duke_mss/sta_602/lab4/")
+setwd("~/workplace/duke/sta602-fa22/lab4/")
 ggplot2::theme_set(ggplot2::theme_bw())
 knitr::opts_chunk$set(fig.align = "center")
 ```
@@ -26,27 +26,25 @@ knitr::opts_chunk$set(fig.align = "center")
 create_df <- function(post_draws, prior_draws){
   post_draws <- data.frame(post_draws)
   post_draws$distribution <- "posterior"
-  
+
   prior_draws <- data.frame(prior_draws)
   colnames(prior_draws) <- "alpha"
   prior_draws$distribution <- "prior"
-  
+
   dat <- rbind(post_draws, prior_draws)
   return(dat)
 }
-set.seed(689934)
-
-alpha <- 1   
-beta <- -0.25 
-sigma <- 1 
 ```  
 
 ***
 ## Exercise 1
 
 ```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+alpha <- 1   
+beta <- -0.25 
+sigma <- 1 
 N <- 5
-x <- array(runif(N, 0, 2), dim=N)                    
+x <- array(runif(N, 0, 2), dim=N)
 y <- array(rnorm(N, beta * x + alpha, sigma), dim=N)
 
 stan_dat <- list(y = y, x=x, N=N)
@@ -58,9 +56,9 @@ beta.flat <- as.matrix(fit.flat, pars = "beta")
 ```
 
 Below are the means and [2.5%, 97.5%], 95% posterior confidence interval on $\beta$ and $\alpha$.
-The posteriors are diffuse because of two. First, we do not have too much data points, and we have a 
-flat prior. In other words, flat prior placed our belief equally throughout the place.
-Hence, with only 5 data points, it is not yet enough rull out the extreme.
+The posteriors are diffuse because of two. First, we do not have too many data points and used a 
+flat prior. In other words, flat prior placed our beliefs equally throughout the place.
+Hence, with only 5 data points, it is not yet enough to rule out the extreme.
 
 ```{r}
 print(fit.flat, pars = c("alpha", "beta"))
@@ -77,25 +75,186 @@ alpha.norm<- as.matrix(fit.norm, pars = c("alpha"))
 ```
 
 Below are the means and [2.5%, 97.5%], 95% posterior confidence interval on $\beta$ and $\alpha$.
-Given we know that the true $\alpha$ is 1, the \mathcal{N}(0, 1) works a bit well than the 
-Uniform prior. No more extreme values, but how good the prior is hard to determant. However, the 
-posertior is still spread out with around 0.5 standard deviations. And the number of effective
-sample size increased to 625.
+Given that we know that the true $\alpha$ is 1, the $\mathcal{N}(0, 1)$ works a bit well than the 
+Uniform prior. No more extreme values, but it is hard to determine the adequacy of the prior. However, the 
+posterior is still spread out with around 0.5 standard deviations. And the effective sample size increased to 625.
 ```{r}
 print(fit.norm, pars = c("alpha", "beta"))
 ```
 
 
 ## Exercise 3
-Theortically, Cauchy prior puts more weights on the tail. It is no nesscarily less informative than
-the normal distribution. And the comparison between the two posterior does not show large differences.
-However, two things to note are that the Cauchy posterior only have 465 number of effective sample size.
-It contains less information than the normal prior. And, the puts more mass on the extreme value than the
-normal distribution make it more sensitive to wrong parameterization of the prior.
+Theoretically, Cauchy prior puts more weights on the tail. It is not necessarily less informative than
+the normal distribution. And the comparison between the two posterior does not show significant differences.
+However, two things to note are that the Cauchy posterior only has a 465 effective sample size.
+It contains less information than the normal prior. And, it puts more mass on the extreme value than the
+normal distribution making it more sensitive to the wrong parameterization of the prior.
 
 ## Exercise 4
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+alpha <- 1
+beta <- -0.25 
+sigma <- 1 
+N <- 5
+
+x <- runif(N, 0, 2)
+y <- rnorm(N, beta * x + alpha, sigma)
+stan_dat <- list(y = y, x=x, N=N)
+
+fit.norm <- stan(
+  file = "lab-04-normal_prior.stan", data = stan_dat, 
+  chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=49
+)
+fit.cauchy <- stan(
+  file = "lab-04-cauchy_prior.stan",data = stan_dat, 
+  chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=55
+)
+
+alpha.norm <- as.matrix(fit.norm, pars=c("alpha"))
+alpha.cauchy <- as.matrix(fit.cauchy, pars=c("alpha"))
+```
+
+Here, first, we set the true $\alpha = 1$ and compares of using $\mathcal{N}(0, 1)$ and $Cauchy(0, 1)$ as a prior.
+When the prior mean is close to the mean $\alpha$, the two prior performed similarly
+despite having only 5 data points. Both posterior distributions cover the true $\alpha$ in their right tail.
+In this limited case, we can't conclude which one is more appropriate.
+
+```{r}
+plot_dat <- create_df(alpha.norm, alpha.cauchy) %>% 
+  mutate(distribution = if_else(distribution == "posterior", "Normal","Cauchy"))
+
+ggplot(plot_dat, aes(alpha, fill = distribution)) + 
+  geom_histogram(binwidth = 0.25, alpha = 0.7, position = "identity")+
+  geom_vline(xintercept = alpha) +
+  scale_fill_brewer()
+```
+
+Now, if we changed the true $\alpha$ from 1 to 5, the differences in Prior started to take effect. Because
+the Prior mean is far from the actual value; thus, the sensitivity began to play a more significant role here
+in determining the posterior distribution. We can see that, in this case, Cauchy performed much better than the Normal
+prior by just having slightly more mass on the far tail.
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+alpha <- 5
+beta <- -0.25 
+sigma <- 1 
+N <- 10
+
+x <- runif(N, 0, 2)
+y <- rnorm(N, beta * x + alpha, sigma)
+stan_dat <- list(y = y, x=x, N=N)
+
+fit.norm <- stan(
+  file = "lab-04-normal_prior.stan", data = stan_dat, 
+  chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=49
+)
+fit.cauchy <- stan(
+  file = "lab-04-cauchy_prior.stan",data = stan_dat, 
+  chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=55
+)
+
+alpha.norm <- as.matrix(fit.norm, pars=c("alpha"))
+alpha.cauchy <- as.matrix(fit.cauchy, pars=c("alpha"))
+```
+
+```{r}
+plot_dat <- create_df(alpha.norm, alpha.cauchy) %>% 
+  mutate(distribution = if_else(distribution == "posterior", "Normal","Cauchy"))
+
+ggplot(plot_dat, aes(alpha, fill = distribution)) + 
+  geom_histogram(binwidth = 0.25, alpha = 0.7, position = "identity")+
+  geom_vline(xintercept = alpha) +
+  scale_fill_brewer()
+```
+
+Lastly, if we keep the $\alpha$ as 5 but increase the sample size, we will notice that the posterior
+resulting from using the Normal prior started to catch up. Although, at a much slower pace, two posteriors 
+tend to converge to a similar posterior when we have large samples.
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+alpha <- 5
+beta <- -0.25 
+sigma <- 1 
+N <- 100
+
+x <- runif(N, 0, 2)
+y <- rnorm(N, beta * x + alpha, sigma)
+stan_dat <- list(y = y, x=x, N=N)
+
+fit.norm <- stan(
+  file = "lab-04-normal_prior.stan", data = stan_dat, 
+  chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=49
+)
+fit.cauchy <- stan(
+  file = "lab-04-cauchy_prior.stan",data = stan_dat, 
+  chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=55
+)
+
+alpha.norm <- as.matrix(fit.norm, pars=c("alpha"))
+alpha.cauchy <- as.matrix(fit.cauchy, pars=c("alpha"))
+```
+
+```{r}
+plot_dat <- create_df(alpha.norm, alpha.cauchy) %>% 
+  mutate(distribution = if_else(distribution == "posterior", "Normal","Cauchy"))
+
+ggplot(plot_dat, aes(alpha, fill = distribution)) + 
+  geom_histogram(binwidth = 0.1, alpha = 0.7, position = "identity")+
+  geom_vline(xintercept = alpha) +
+  scale_fill_brewer()
+```
+
+## Exercise 5
+Lighter-tailed priors are much less sensitive than their Heavy-tailed counterparts. We can use the 
+Lighter-tailed priors when we are reasonably sure about the phenomenon. Vice versa, if we don't hold a strong prior belief, we can opt for heavy-tailed priors to cover the cases when the observations
+are pretty off our expectations. In noisy observations, strong prior beliefs are insensitive to outliers but can also be slow to adopt the real norm.
+
+Concerning the sample size, if we have an abundance of data, neither of them will matter much. However,
+when we have limited data, Heavy-tailed priors can help when we are not certain about our beliefs. And,
+Lighter-tailed priors can guardrail any outliers by imposing stronger bias.
+
+## Exercise 6
+We can keep using the actual scale if we know and interpret it. If not, we can standardize the data, 
+impose a standardized prior, and analyze the scale in unit scale. This has to do with the data.
 
 
+## Exercise 7
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+set.seed(123)
+theta <- 0.3
+N <- 10
+y <- rbinom(N, 1, theta)
+
+stan_dat <- list(y=y, N=N)
+fit.bayes.prob <- stan(file = "lab-04-prob.stan", data = stan_dat, refresh = 0, iter = 2000)
+```
+
+We are imposing a $Beta(1, 1)$ prior on the parameter $\theta$, with the following dataset $Y$, we expect a 
+$Beta(5, 7)$ posterior. Hence, the theoretical mode is 0.4. It is pretty close to what we sampled a bit off.
+See below for a histogram.
+```{r}
+print(y) # sample data
+print(fit.bayes.prob, pars = c("theta", "eta"))
+
+postSample <- as.data.frame(as.matrix(fit.bayes.prob, pars=("theta")))
+ggplot(postSample, aes(theta)) +
+  geom_histogram(bins=30) +
+  geom_vline(xintercept = 0.4)
+```
+
+## Exercise 8
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+fit.logodds <- stan(file = "lab-04-log_odds.stan", data = stan_dat, refresh = 0, iter = 2000)
+```
+
+$Beta(0,0)$ is not a proper distribution, the denominator $Beta(0,0)$ is infinity. Well, it works in computers
+with finite precision, for example, 1e-4 used in the STAN model. But, as a distribution, it is pure theoretically.
+Although, it can be used as an uninformative prior for the Binomial in our case.
+```{r}
+print(fit.logodds, pars = c("theta", "eta"))
+```
+
+## Exercise 9
+We will have $p(\theta) \propto (1-\theta)^{-2}$ as the induced prior from a uniform $\pi$.
+It definitely does not integrate to 1 between the range of $\in [0, 1]$, nor is it a uniform prior.
 
 ***
 
