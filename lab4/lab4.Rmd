@@ -1,0 +1,101 @@
+---
+title: 'STA 602 Lab 4'
+author: "Student"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+require(rstan)
+require(plyr)
+require(bayesplot)
+require(loo)
+require(readxl)
+require(ggplot2)
+
+setwd("~/workspace/duke_mss/sta_602/lab4/")
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+create_df <- function(post_draws, prior_draws){
+  post_draws <- data.frame(post_draws)
+  post_draws$distribution <- "posterior"
+  
+  prior_draws <- data.frame(prior_draws)
+  colnames(prior_draws) <- "alpha"
+  prior_draws$distribution <- "prior"
+  
+  dat <- rbind(post_draws, prior_draws)
+  return(dat)
+}
+set.seed(689934)
+
+alpha <- 1   
+beta <- -0.25 
+sigma <- 1 
+```  
+
+***
+## Exercise 1
+
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+N <- 5
+x <- array(runif(N, 0, 2), dim=N)                    
+y <- array(rnorm(N, beta * x + alpha, sigma), dim=N)
+
+stan_dat <- list(y = y, x=x, N=N)
+fit.flat <- stan(file = "lab-04-flat_prior.stan", data = stan_dat, 
+                 chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=48)
+
+alpha.flat <- as.matrix(fit.flat, pars = "alpha")
+beta.flat <- as.matrix(fit.flat, pars = "beta")
+```
+
+Below are the means and [2.5%, 97.5%], 95% posterior confidence interval on $\beta$ and $\alpha$.
+The posteriors are diffuse because of two. First, we do not have too much data points, and we have a 
+flat prior. In other words, flat prior placed our belief equally throughout the place.
+Hence, with only 5 data points, it is not yet enough rull out the extreme.
+
+```{r}
+print(fit.flat, pars = c("alpha", "beta"))
+```
+
+
+## Exercise 2
+```{r, echo=F, cache=T, results='hide', message=F, warning=F}
+stan_dat <- list(y = y, x=x, N=N)
+fit.norm <- stan(file = "lab-04-normal_prior.stan", data = stan_dat, 
+                 chains = 1, refresh = 0, iter = 2000, warmup = 500, seed=49)
+## Trying to compile a simple C file
+alpha.norm<- as.matrix(fit.norm, pars = c("alpha"))
+```
+
+Below are the means and [2.5%, 97.5%], 95% posterior confidence interval on $\beta$ and $\alpha$.
+Given we know that the true $\alpha$ is 1, the \mathcal{N}(0, 1) works a bit well than the 
+Uniform prior. No more extreme values, but how good the prior is hard to determant. However, the 
+posertior is still spread out with around 0.5 standard deviations. And the number of effective
+sample size increased to 625.
+```{r}
+print(fit.norm, pars = c("alpha", "beta"))
+```
+
+
+## Exercise 3
+Theortically, Cauchy prior puts more weights on the tail. It is no nesscarily less informative than
+the normal distribution. And the comparison between the two posterior does not show large differences.
+However, two things to note are that the Cauchy posterior only have 465 number of effective sample size.
+It contains less information than the normal prior. And, the puts more mass on the extreme value than the
+normal distribution make it more sensitive to wrong parameterization of the prior.
+
+## Exercise 4
+
+
+
+***
+
