@@ -74,6 +74,23 @@ Here we repeat the same thing done in (a) and (b) to the predictive posterior di
 \newpage
 
 \section{Exercise 4.4}
+\paragraph{(a)}
+According to Exercise 3.4, we have a mixture of beta prior for $\theta$ and a Binominal data generating model with $n=43, y=15$. Hence, the resulting posterior is still a beta mixture with an updated weight $w_i$ proportional to the new density. And its estimated 95\% confidence interval is $[0.2036, 0.4578]$.
+\begin{align*}
+    p(\theta) &\propto \frac{3}{4} \theta (1-\theta)^7 + \frac{1}{4} \theta^7(1-\theta) \\
+    p(y|\theta) &\propto \theta^y \theta^{n-y} \\
+    p(\theta|y) &\propto w_1 \theta^{16} (1-\theta)^{35} + w_2 \theta^{22}(1-\theta)^{29}
+\end{align*}
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.7\textwidth]{4.4.a.png}
+  \captionsetup{justification=centering}
+  \caption{Posterior Kernel Estimation using Discrete Approximation}
+\end{figure*}
+\newpage
+
+\paragraph{(b)}
 
 
 
