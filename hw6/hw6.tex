@@ -1,0 +1,134 @@
+\title{STA 602 HW2}
+\documentclass[11pt, letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper, margin=0.5in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage[font=scriptsize]{caption}
+\usepackage{subcaption}
+\graphicspath{ {.} }
+\captionsetup{justification=raggedright, singlelinecheck=false}
+
+\author{Ryan Tang}
+\date{October 7th 2022}
+
+\begin{document}
+\maketitle
+
+\section{Exercise 3.12}
+\paragraph{(a) Binomial Jeffery's Prior}
+\begin{align*}
+    Y &\thicksim Binomial(n, \theta) \\
+    p(y|\theta) &= {n \choose y} \theta^y (1-\theta)^{n-y} \\
+    \log p(y|\theta) &= \log{n \choose y} + y \log\theta + (n-y)\log(1-\theta) \\
+    \frac{\partial}{\partial \theta} \log p(y|\theta) &= \frac{y}{\theta} - \frac{n-y}{1-\theta} \\
+    \frac{\partial^2}{\partial^2 \theta} \log p(y|\theta) &= -\frac{y}{\theta^2} - \frac{n-y}{(1-\theta)^2} \\
+    - \mathbb{E}[\frac{\partial^2}{\partial^2 \theta} \log p(y|\theta)|\theta]
+        &= \frac{\mathbb{E}[y|\theta]}{\theta^2} + \frac{n-\mathbb{E}[y|\theta]}{(1-\theta)^2} \\
+        &= \frac{n\theta}{\theta^2} + \frac{n-n\theta}{(1-\theta)^2} \\
+        &= \frac{n}{\theta(1-\theta)} \\
+    p_J(\theta) &\propto \sqrt{- \mathbb{E}[\frac{\partial^2}{\partial^2 \theta}|\theta]} \\
+        &\propto \theta^{-1/2} (1-\theta)^{-1/2} \\
+        &\thicksim Beta(\frac{1}{2}, \frac{1}{2})
+\end{align*}
+
+\paragraph{(b) Jeffery's Prior on Log-Odd Binomial}
+If we reparameterize the binomial using log-odd, we have the following.
+\begin{align*}
+    \psi &= \log\frac{\theta}{1-\theta} \\
+    p(y|\psi) &= {n \choose y} e^{\psi y} (1+e^\psi)^{-n} \\
+    \log p(y|\psi) &= \log{n \choose y} + \psi y -n \log(1+e^\psi) \\
+    -\mathbb{E}[\frac{\partial^2}{\partial^2 \psi} \log p(y|\psi) | \psi]
+        &= \mathbb{E}[\frac{n e^\psi}{(1+e^\psi)^2} | \psi] \\
+        &= \frac{n e^\psi}{(1+e^\psi)^2} \\
+    p_J(\psi) &\propto e^{\psi/2}(1+e^\psi)^{-1}
+\end{align*}
+
+\paragraph{(c) Use the change of variable directly on the Binomial Jeffery's Prior}
+\begin{align*}
+    \theta &= \frac{e^\psi}{1+e^\psi} \\
+    p_J(\theta) &\propto \theta^{-1/2} (1-\theta)^{-1/2} \\
+    p_J(\psi) &\propto {\frac{e^\psi}{1+e^\psi}}^{-1/2} (1-\frac{e^\psi}{1+e^\psi})^{-1/2} |\frac{\partial \theta}{\partial \psi}| \\
+        &\propto {\frac{e^\psi}{1+e^\psi}}^{-1/2} (\frac{1}{1+e^\psi})^{-1/2} \frac{e^\psi}{(1+e^\psi)^2} \\
+        &\propto \frac{1+e^\psi}{(1+e^\psi)^2} \frac{e^\psi}{e^{\psi/2}} \\
+        &\propto e^{\psi/2}(1+e^\psi)^{-1}
+\end{align*}
+
+
+\section{Exercise 3.13}
+\paragraph{(a) Jeffrey's Prior on Poisson}
+It is actually not a proper prior because of the $b = 0$ term. It is not normalizable.
+\begin{align*}
+    p(y|\theta) &= \frac{\theta^y}{y!} e^{-\theta} \\
+    \frac{\partial^2}{\partial^2 \theta} \log p(y|\theta)
+        &= -y\theta^{-2} \\
+    p_J(\theta) &\propto \sqrt{\mathbf{I}(\theta)} \\
+        &\propto \sqrt{-\mathbb{E}[\frac{\partial^2}{\partial^2 \theta} \log p(y|\theta)|\theta]} \\
+        &\propto \sqrt{\mathbb{E}[y|\theta]\theta^{-2}} && \mathbb{E}[y|\theta] = \theta \\
+        &\propto \theta^{-1/2} e^{-0\theta} \\
+        &\thicksim Gamma(\frac{1}{2}, 0)
+\end{align*}
+
+\paragraph{(b) Posterior of Improper Poisson Prior}
+However, the posterior of using this improper prior is still a valid posterior distribution because the sufficient statistics still add up as usual.
+\begin{align*}
+    p(\theta, y) &= \sqrt{\mathbf{I}(\theta)} p(y|\theta) \\
+        &= \theta^{-1/2} \frac{1}{y!} \theta^y e^{-\theta} \\
+        &\propto \theta^{1/2 - 1 + y} e^{-\theta} \\
+        &\thicksim Gamma(\frac{1}{2} + y, 1)
+\end{align*}
+
+
+\section{Exercise 3.14}
+\paragraph{(a) Bernoulli MLE estimate and the unit information prior}
+\begin{align*}
+    p(y_i|\theta) &= \theta^{y_i} (1-\theta)^{1-y_i} \\
+    \ell(\theta|Y) &= \sum_i y_i\log\theta + (1-y_i)\log(1-\theta) \\
+        &= n\bar{y}\log\theta + (n-n\bar{y})\log(1-\theta) \\
+    \hat{\theta} &= \mathop{\arg\max}_{\theta} \ell(\theta|Y) \\
+    \frac{\partial}{\partial \theta} \ell(\theta|Y) &= \sum_i [\frac{y_i}{\theta} - \frac{1-y_i}{1-\theta}] = 0 \\
+    \hat{\theta} &= \frac{1}{n}\sum_i y_i = \bar{y} \\ \\
+    \frac{J(\hat{\theta})}{n} &= -\frac{1}{n}\frac{\partial^2}{\partial^2\theta}\ell(\hat{\theta}|Y) \\
+        &= -\frac{1}{n}\frac{\partial^2}{\partial^2\theta}[n\bar{y}\log\theta + (n-n\bar{y})\log(1-\theta)] \\
+        &= \frac{\partial^2}{\partial^2\theta}[-\bar{y}\log\theta - (1-\bar{y})\log(1-\theta)] \\
+        &= \bar{y}\hat{\theta}^{-2} + (1-\bar{y})(1-\hat{\theta})^{-2}
+\end{align*}
+
+\paragraph{(b) Finding $p_U(\theta)$}
+\begin{align*}
+    \log p_U(\theta) &= \ell(\theta|y)/n + c \\
+        &= \bar{y}\log\theta + (1-\bar{y})\log(1-\theta) + c \\
+    p_U(\theta) &\propto \theta^{\bar{y}} (1-\theta)^{1-\bar{y}} \\
+        &\thicksim Beta(\bar{y}+1, 2-\bar{y}) \\ \\
+    -\frac{\partial^2}{\partial^2\theta}\log p_U(\theta)
+        &= -\frac{\partial^2}{\partial^2\theta} [\bar{y}\log\theta + (1-\bar{y})\log(1-\theta)] \\
+        &= \bar{y}\theta^{-2} + (1-\bar{y})(1-\theta)^{-2}
+\end{align*}
+
+\paragraph{(c) Posterior Distribution of $\theta$}
+It is certainly a proper posterior distribution.
+\begin{align*}
+    p(\theta|Y) &\propto p_U(\theta) p(Y|\theta) \\
+        &\propto \theta^{\bar{y}} (1-\theta)^{1-\bar{y}} \prod_i \theta^{y_i}(1-\theta)^{1-y_i} \\
+        &\propto \theta^{\bar{y}+n\bar{y}} (1-\theta)^{1-\bar{y}+n-n\bar{y}} \\
+        &\thicksim Beta(\bar{y}(n+1)+1, (1-\bar{y})(n+1)+1)
+\end{align*}
+
+\paragraph{(d) Unit Information Prior for Poisson}
+\begin{align*}
+    p(y|\theta) &= \frac{1}{y!}\theta^y e^{-\theta} \\
+    p(Y|\theta) &= \prod_i(\frac{1}{y_i!})\theta^{n\bar{y}} e^{-n\theta} = \ell(\theta|Y) \\
+    \frac{1}{n} \ell(\theta|Y) &\propto \frac{1}{n}[n\bar{y}\log\theta - n\theta] \\
+        &\propto \bar{y}\log\theta - \theta \\
+    p(\theta) &\propto \exp[\frac{1}{n} \ell(\theta|Y)] \\
+        &\propto \theta^{\bar{y}} e^{-\theta} \\
+        &\thicksim Gamma(\bar{y}+1, 1) \\
+    p(\theta|Y) &\propto \theta^{\bar{y}} e^{-\theta} n\bar{y}\log\theta - n\theta \\
+        &\propto \theta^{\bar{y}(n+1)} e^{-\theta(n+1)} \\
+        &\thicksim Gamma(\bar{y}(n+1)+1, n+1)
+\end{align*}
+
+
+\end{document}
