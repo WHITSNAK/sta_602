@@ -1,0 +1,180 @@
+---
+title: 'STA 602 Lab 5'
+author: "Ryan Tang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+require(rstan)
+require(plyr)
+require(bayesplot)
+require(loo)
+require(readxl)
+require(ggplot2)
+
+setwd("~/workspace/duke_mss/sta_602/lab5")
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+***
+## Exercise 1
++ Exp(1) cannot be used as a candidate distribution to draw samples from N(0,1) on the interval
+(-3, 3), because it has no support on the negative plane.
++ Between the interval of (-2, 2), N(0, 1) can be used to draw standard Cauchy samples because
+we have a finite ceiling constant. The standard Cauchy has the highest density, $\frac{1}{\pi}$
+at the point of x=0; same for the standard normal with a density of $\frac{1}{\sqrt{2\pi}}$ at
+the same location. Hence, we can always find a scaling constant, $M$, for the rejection sampling.
++ Yes, knowing the kernel is enough for rejection sampling. We can draw the samples and then
+normalize it using the finite samples. It is a Yes for a 100-variate distribution.
+However, the efficiency is not ideal.
+
+## Exercise 2
+Given just the kernel is the possible $M'$ are anything that is $\geq 1$ for a uniform candidate
+distribution. The range is certainly different if apply to the true density function.
+
+## Exercise 3
+```{r}
+# target density function
+f <- function(x) {
+  sin(pi * x)^2
+}
+
+set.seed(23523)
+nsim <- 10000
+M <- 1
+accepted_count <- 0
+total_count <- 0
+res <- numeric()
+
+while (accepted_count < nsim){
+  x <- runif(1)
+  r <- f(x) / (M * dunif(x))
+  if (runif(1) <= r) {
+    res <- append(res, x)
+    accepted_count <- accepted_count + 1
+  }
+
+  total_count <- total_count + 1
+}
+
+theta <- seq(0, 1, length.out = 200)
+g_theta <- sin(pi * theta)^2
+ggplot() +
+  geom_density(data=data.frame(xs = res), aes(xs)) +
+  geom_line(data=data.frame(theta=theta, g=g_theta), aes(theta, g), color="red")
+```
+
+## Exercise 4
++ Because $sin^2(\pi x)$ is no the real density, just a kernel, of course the samples we obtained from the rejection sampler will differ.
+But the overall shape is simliar.
++ At $M=1$, I had about 50% acceptance rate. A total counts of 20,026 for 10,000 accepted samples.
++ The higher the $M'$ is, the lower the acceptance rate. On the contrary, if $M'$ is too small, the candidate q will not cover the entire support
+of the target distribution, we will not obtain good samples.
+
+```{r echo=F, include=T}
+# target density function
+f <- function(x) {
+  sin(pi * x)^2
+}
+
+set.seed(23523)
+nsim <- 10000
+M <- 3
+accepted_count <- 0
+total_count <- 0
+res <- numeric()
+
+while (accepted_count < nsim){
+  x <- runif(1)
+  r <- f(x) / (M * dunif(x))
+  if (runif(1) <= r) {
+    res <- append(res, x)
+    accepted_count <- accepted_count + 1
+  }
+
+  total_count <- total_count + 1
+}
+
+theta <- seq(0, 1, length.out = 200)
+g_theta <- sin(pi * theta)^2
+ggplot() +
+  geom_density(data=data.frame(xs = res), aes(xs)) +
+  geom_line(data=data.frame(theta=theta, g=g_theta), aes(theta, g), color="red") +
+  ggtitle("M = 3")
+```
+
+```{r echo=F, include=T}
+# target density function
+f <- function(x) {
+  sin(pi * x)^2
+}
+
+set.seed(23523)
+nsim <- 10000
+M <- 0.25
+accepted_count <- 0
+total_count <- 0
+res <- numeric()
+
+while (accepted_count < nsim){
+  x <- runif(1)
+  r <- f(x) / (M * dunif(x))
+  if (runif(1) <= r) {
+    res <- append(res, x)
+    accepted_count <- accepted_count + 1
+  }
+
+  total_count <- total_count + 1
+}
+
+theta <- seq(0, 1, length.out = 200)
+g_theta <- sin(pi * theta)^2
+ggplot() +
+  geom_density(data=data.frame(xs = res), aes(xs)) +
+  geom_line(data=data.frame(theta=theta, g=g_theta), aes(theta, g), color="red") +
+  ggtitle("M = 0.25")
+```
+
+
+## Exercise 5
+Beta(2, 2) is a nice choice compare to the uniform candidate. Using this, the acceptance rate
+increased from 50% to around 70%. 
+
+```{r echo=F, include=T}
+# target density function
+f <- function(x) {
+  sin(pi * x)^2
+}
+
+set.seed(23523)
+nsim <- 10000
+M <- 1/1.5
+accepted_count <- 0
+total_count <- 0
+res <- numeric()
+
+while (accepted_count < nsim){
+  x <- rbeta(1, shape1=2, shape2=2)
+  r <- f(x) / (M * dbeta(x, shape1=2, shape2=2))
+  if (runif(1) <= r) {
+    res <- append(res, x)
+    accepted_count <- accepted_count + 1
+  }
+
+  total_count <- total_count + 1
+}
+
+theta <- seq(0, 1, length.out = 200)
+g_theta <- sin(pi * theta)^2
+ggplot() +
+  geom_density(data=data.frame(xs = res), aes(xs)) +
+  geom_line(data=data.frame(theta=theta, g=g_theta), aes(theta, g), color="red") +
+  ggtitle("q = Beta(2, 2) | M = 1/1.5")
+```
+***

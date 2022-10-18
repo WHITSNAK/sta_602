@@ -40,9 +40,9 @@ create_df <- function(post_draws, prior_draws){
 ## Exercise 1
 
 ```{r, echo=F, cache=T, results='hide', message=F, warning=F}
-alpha <- 1   
-beta <- -0.25 
-sigma <- 1 
+alpha <- 1
+beta <- -0.25
+sigma <- 1
 N <- 5
 x <- array(runif(N, 0, 2), dim=N)
 y <- array(rnorm(N, beta * x + alpha, sigma), dim=N)
