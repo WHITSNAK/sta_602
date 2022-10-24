@@ -17,7 +17,7 @@ require(loo)
 require(readxl)
 require(ggplot2)
 
-setwd("~/workspace/duke_mss/sta_602/lab5")
+setwd(".")
 ggplot2::theme_set(ggplot2::theme_bw())
 knitr::opts_chunk$set(fig.align = "center")
 ```
