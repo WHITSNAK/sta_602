@@ -1,0 +1,113 @@
+---
+title: 'STA 602 Lab 6'
+author: "Ryan Tang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+library(ggplot2)
+
+setwd(".")
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+***
+## Exercise 1
+Suppose $U = (U_1, U_2)$ is jointly Gaussian with parameters
+$$\mu=(\mu_1, \mu_2)$$
+$$
+  \Sigma=
+    \begin{bmatrix}
+    \Sigma_{11} & \Sigma_{12} \\
+    \Sigma_{21} & \Sigma_{22} \\
+    \end{bmatrix}
+$$
+$$\Lambda = \Sigma^{-1} = \begin{bmatrix}
+    \Lambda_{11} & \Lambda_{12} \\
+    \Lambda_{21} & \Lambda_{22} \\
+    \end{bmatrix}
+$$
+The conditional is given by the following expression.
+$$p(U_1|U_2) = \mathcal{N}(U_1|\mu_{1|2}, \Sigma_{1|2})$$
+$$\mu_{1|2} = \mu_1 - \Sigma_{12}\Sigma_{22}^{-1}(U_2 - \mu_2)$$
+$$\Sigma_{1|2} = \Sigma_{11} - \Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21} = \Lambda_{11}^{-1}$$
+The conditional for $U_2|U_1$ is just the above equations with flipped signs.
+
+## Exercise 2
+Applying the above formulas, we arrive at the following full conditionals for X, Y, and Z.
+$$
+  \begin{bmatrix} X\\Y\\Z \end{bmatrix}
+  \thicksim \mathcal{N}_3 \left[
+    \theta = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}, \,
+    \Sigma = \begin{bmatrix} 1,0.9,0.1 \\ 0.9,1,0.1 \\ 0.1,0.1,1 \end{bmatrix}
+  \right]
+$$
+$$X|Y,Z \thicksim \mathcal{N}(\mu=-0.899Y-0.01Z,\, \sigma^2=0.1899)$$
+$$Y|X,Z \thicksim \mathcal{N}(\mu=-0.899X-0.01Z,\, \sigma^2=0.1899)$$
+$$Z|X,Y \thicksim \mathcal{N}(\mu=-0.0526X-0.0526Y,\, \sigma^2=0.98947)$$
+
+## Exercise 3
+```{r echo=F, include=T}
+x <- 0
+y <- 0
+z <- 0
+n_samples <- 1000
+
+samples <- array(dim=c(n_samples, 3))
+for (i in 1:n_samples) {
+  x <- rnorm(1, mean=-(0.899*y+0.01*z), sd=sqrt(0.1899))
+  y <- rnorm(1, mean=-(0.899*x+0.01*z), sd=sqrt(0.1899))
+  z <- rnorm(1, mean=-(0.0526*x+0.0526*y), sd=sqrt(0.98947))
+  samples[i,] <- c(x, y, z)
+}
+colnames(samples) <- c("x", "y", "z")
+
+# plots
+coda_obj <- coda::mcmc(samples, start=1)
+coda::traceplot(coda_obj)
+coda::autocorr.plot(coda_obj)
+```
+
+## Exercise 4
+$$X,Y|Z \thicksim \mathcal{N}
+  \left(
+  \mu=\begin{bmatrix} -0.1Z \\ -0.1Z \end{bmatrix},\,
+  \sigma^2=\begin{bmatrix} 5.266, -4.734 \\ -4.734, 5.266 \end{bmatrix}
+  \right)
+$$
+$$Z|X,Y \thicksim \mathcal{N}(\mu=-0.0526X-0.0526Y,\, \sigma^2=0.98947)$$
+
+## Exercise 5
+```{r echo=F, include=T}
+x <- 0
+y <- 0
+z <- 0
+n_samples <- 1000
+
+samples <- array(dim=c(n_samples, 3))
+for (i in 1:n_samples) {
+  xy <- mvtnorm::rmvnorm(1, mean=c(-0.1*z, -0.1*z), sigma=matrix(c(5.266, -4.734, -4.734, 5.266), ncol=2, byrow=TRUE))
+  x <- xy[1]
+  y <- xy[2]
+  z <- rnorm(1, mean=-(0.0526*x+0.0526*y), sd=sqrt(0.98947))
+  samples[i,] <- c(x, y, z)
+}
+colnames(samples) <- c("x", "y", "z")
+
+# plots
+coda_obj <- coda::mcmc(samples, start=1)
+coda::traceplot(coda_obj)
+coda::autocorr.plot(coda_obj)
+```
+
+## Exercise 6
+With a high correlation between X and Y, we see that if we use the Gibbs Sampler on each full conditional, we get a sticky chain.
+The result was the first example that we saw a high autocorrelation among X and Y samples.
+After we use block updates on X and Y together, the chain we obtained suddenly gets much better, and the autocorrelation
+also disappears. The high correlation between X and Y limits the sampler's exploration ability, making it less efficient.
+Treating it as a block speeds up because the relationship between Z covers a much wider area.
+
+***
