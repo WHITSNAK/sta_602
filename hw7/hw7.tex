@@ -249,13 +249,15 @@ We are provided with the following assumption that $\theta_A = \theta$, $\theta_
 \end{align*}
 
 \paragraph{(d) Gibbs Sampler}
+Here we did a quick, sensitive analysis on $\gamma$. By setting the prior parameter $a_\gamma = b_\gamma$, we started with our prior assumption that the mean of $\gamma$ is 1, $\mathbf{E}[\gamma] = \frac{a_\gamma}{b_\gamma}$ because it is a gamma distribution. Furthermore, we parameterized $\theta_A = \theta$ and $\theta_B = \theta \times \gamma$ as such. $\gamma$ is the relative rate of group A and group B. The larger the two prior parameters, the stronger the prior belief that $\gamma$ is 1. Its precisely what we see in Figure 3. 
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=0.55\textwidth]{5.2.a.png}
+  \includegraphics[width=0.55\textwidth]{6.1.d.png}
   \captionsetup{justification=centering}
-  \caption{Sensitive Analysis using Monte Carlo on Normal conjugates}
+  \caption{Sensitive Analysis using Gibbs Sampler}
 \end{figure*}
 
+\newpage
 \paragraph{Appendix}
 Here is the code for the Gibbs sampler that I used for this problem.
 \begin{lstlisting}[language=Python]
