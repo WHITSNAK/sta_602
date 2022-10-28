@@ -99,9 +99,81 @@ $\theta_k$ and $\sigma_k$ are the normal semi-conjugate posterior forms in their
 \end{align*}
 
 \paragraph{(3) Gibbs Samples}
+Here we plot the autocorrelation for the two $\theta$ samples, and we can see very strong AR between samples. The effective sample size (ESS) for $\theta_{(1)}^{(s)}$ is $971$ out of 10,000 draws. And the ESS for $\theta_{(2)}^{(s)}$ is $1,202$. The chain is probably not that well mixed after all.
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{6.2.2(1).png}
+  \captionsetup{justification=centering}
+  \caption{$\theta_{(1)}^{(s)}$ The min of two $\theta$ Autocorrelation Plot }
+\end{figure*}
 
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{6.2.2(2).png}
+  \captionsetup{justification=centering}
+  \caption{$\theta_{(2)}^{(s)}$ The max of two $\theta$ Autocorrelation Plot }
+\end{figure*}
+
+\paragraph{(d) Posterior Predictive}
+From the surface, the posterior distribution doesn't quite match the observations. However, I think it is not the mixture model's fault, but Gibbs sampler didn't do a good job exploring the entire sample space. If we use EM instead, the solution might well be better. 
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{6.2.3.png}
+  \captionsetup{justification=centering}
+  \caption{$\tilde{Y}$ Posterior Predictive Plot}
+\end{figure*}
+
+\newpage
 
 \section{Exercise 6.3}
+\paragraph{(a) Full Conditional when $c$ is known}
+We are given the following hierarchical model in the probit regression with a known $c$.
+\begin{align*}
+    Z_i &= \beta X_i + \epsilon_i \\
+    Y_i &= \delta_{c, \infty}(Z_i) = \mathbb{I}(Z_i>c) 1 + \mathbb{I}(Z_i\leq c) 0 \\
+    \epsilon_i &\mathop{\thicksim}^{iid} \mathcal{N}(0, 1) \\
+    \beta &\thicksim \mathcal{N}(0, \tau^2_{\beta, o})
+\end{align*}
+\begin{align*}
+    p(Y, X, Z, c, \beta) &= p(Y|Z,c) p(Z|X,\beta) p(\beta) \\
+        &= p(\beta) \prod_i^N p(Y_i|Z_i,c) p(Z_i|X_i, \beta) \\ \\
+    p(\beta | Y, X, Z, c) &\propto p(\beta) \prod_i^N p(Z_i|X_i, \beta) \\
+        &\propto \exp \left[ -\frac{1}{2} [
+            \beta^2\tilde{\tau}_{\beta, o} + \sum_i^N(Z_i - X_i\beta)^2
+        ]\right] && \frac{1}{\tau_{\beta, o}^2} = \tilde{\tau_{\beta, o}} \\
+        &\propto \exp \left[ -\frac{1}{2} [
+            \beta^2(\tilde{\tau}_{\beta, o} + \sum_i^N X_i^2) - 2\beta \sum_i Z_i X_i
+        ] \right] \\
+        &\propto \exp \left[ -\frac{1}{2} \tilde{\tau}_{\beta, N} [
+            \beta^2 - 2\beta \frac{\sum_i Z_i X_i}{\tilde{\tau}_{\beta, N}}
+        ] \right] && \tilde{\tau}_{\beta, N} = \tilde{\tau}_{\beta, o} + \sum_i^N X_i^2 \\
+        &\thicksim \mathcal{N} \left( \frac{\sum_i Z_i X_i}{\tilde{\tau}_{\beta, N}}, \tau^2_{\beta, N} \right)
+\end{align*}
+
+\paragraph{(b) Full Conditional for $c$ and $Z_i$}
+We can see $c$ is a constrained normal distribution under a interval.
+\begin{align*}
+    p(c) = \mathcal{N}(0, \tau_c^2) \\
+    p(c|Y, X, Z, \beta) &\propto p(Y|Z, c) p(c) \\
+        &\propto p(c) \prod_i p(Y_i|Z_i, c) \\
+        &\propto p(c) \prod_{i \in Y_i=1} \delta_{(c,\infty)}(Z_i)^{Y_i} \prod_{j \in Y_i=0} \delta_{(-\infty,c)}(Z_j)^{1-Y_j} \\
+        &\propto \mathcal{N}(0, \tau_c^2) \mathbb{I}(\max\{Z_i \in Y_i=0\} \leq c < \min\{Z_i \in Y_i=1\}) 
+\end{align*}
+And on the other hand, the full conditional of $Z_i$ is a truncated normal. First, because we know the latent variable $Z_i$ itself is given by a normal generative model with $X_i$ and $\beta$. But the additional information from $Y_i$ constrained the region that $Z_i$ could be. Hence, the following formulations.
+\begin{align*}
+    p(Z_i|X_i,Y_i,\beta,c) &\propto p(Y_i|Z_i, c) p(Z_i|X_i, \beta) \\ \\
+    p(Z_i|X_i,\beta,Y_i=1,c) &\propto p(Y_i=1|Z_i, c) p(Z_i|X_i, \beta) \\
+        &\propto \mathcal{N}(Z_i|X_i\beta, 1)\delta_{(c,\infty)}(Z_i) \\
+    p(Z_i|X_i,\beta,Y_i=2,c) &\propto \mathcal{N}(Z_i|X_i\beta, 1)\delta_{(-\infty,c)}(Z_i) \\
+\end{align*}
+
+\paragraph{(c) Gibbs Samples}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{6.2.3.png}
+  \captionsetup{justification=centering}
+  \caption{$\tilde{Y}$ Posterior Predictive Plot}
+\end{figure*}
 
 
 \end{document}
