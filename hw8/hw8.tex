@@ -168,12 +168,22 @@ And on the other hand, the full conditional of $Z_i$ is a truncated normal. Firs
 \end{align*}
 
 \paragraph{(c) Gibbs Samples}
+Here we implemented the above formulation using Gibbs sampler. I had it ran for 2,000 burn-in epochs and additional 30,000 sampling epochs. The following chain is the result. We still see high autocorrelation for both $c$ and $\beta$ during the sampling. The effective sample size for $c$ is 1,156 and it is 1,651 for $\beta$. The chains were very sticky.
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=0.6\textwidth]{6.2.3.png}
+  \includegraphics[width=1.0\textwidth]{6.3.3(1).png}
   \captionsetup{justification=centering}
-  \caption{$\tilde{Y}$ Posterior Predictive Plot}
+  \caption{$c$ Posterior Gibbs Samples}
 \end{figure*}
 
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{6.3.3(2).png}
+  \captionsetup{justification=centering}
+  \caption{$\beta$ Posterior Gibbs Samples}
+\end{figure*}
+
+\paragraph{(d) $\beta$ Inference}
+Lastly, we like to know if the age differences between men and woman would lead to higher divorce rate. Base on the observation data, we have our $\beta|Y,X$ posterior's 95\% confidence interval between $[0.104, 0.673]$. And, the $Pr[\beta > 0|Y,X] = 0.9991$
 
 \end{document}
