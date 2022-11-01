@@ -7,7 +7,18 @@ output:
 ---
 
 ```{r setup, message=F, warning=F, echo=F}
+library(tidyverse)
+library(rstanarm)
+library(magrittr)
+library(rstan)
+library(plyr)
+library(bayesplot)
+library(loo)
+library(readxl)
 library(ggplot2)
+library(ggrepel)
+library(cowplot)
+library(truncnorm)
 
 setwd(".")
 ggplot2::theme_set(ggplot2::theme_bw())
@@ -16,6 +27,107 @@ knitr::opts_chunk$set(fig.align = "center")
 
 ***
 ## Exercise 1
+Here we sample from the derived full conditional equations.
+```{r echo=F}
+n <- 1000
+true_Rsquared <- 5
+true_sigma <- 1.25
+#
+u <- runif(n, 0, true_Rsquared)  # de-noised squared distance of each point to (0,0)
+r <- u + rnorm(n, sd = true_sigma)  # add normal noise
+theta <- runif(n, 0, 2*pi)
+#
+ggplot2::ggplot() +
+  geom_point(data = data.frame(x = sign(r)*sqrt(abs(r))*cos(theta), y = sign(r)*sqrt(abs(r))*sin(theta)),
+             aes(x = x, y = y), shape = 1) +
+  geom_path(data = data.frame(R = true_Rsquared) %>%
+                              plyr::ddply(.(R), function(d){
+                                data.frame(x = sqrt(d$R)*cos(seq(0, 2*pi, length.out = 100)),
+                                            y = sqrt(d$R)*sin(seq(0, 2*pi, length.out = 100)))
+                              }),
+                       aes(x = x, y = y), alpha = 1, colour = "red") +
+  coord_fixed()
+```
+
+```{r echo=T}
+set.seed(23498324)
+
+# hyper-parameters
+m <- 3
+k <- 1
+alpha <- 5/2
+beta <- 5/2
+
+# generate random sample from pareto(m,k)
+rpareto <- function(m, k, trunc = NULL){
+  p <- m*(1 - runif(1))^(-1/k)
+  if(!is.null(trunc)){
+    while(p > trunc){
+      p <- m*(1 - runif(1))^(-1/k)
+    }
+  }
+  return(p)
+}
+
+#
+uni_pareto_gibbs <- function(S, r, m, k, alpha, beta, burn_in = min(1000, S / 2), thin = 5){
+  # Reparametrize X matrix to squared radius values
+  Rsq <- r  # squared distance
+  n <- length(Rsq)  # sample size
+  R2 <- rep(1, S)  # to save the S gibbs samples for R^2, also intialized it
+  U <- matrix(0, nrow = S, ncol = n)  # to save the S gibbs samples for u_1, ..., u_n
+  U[1, ] <- runif(n, 0, R2)  # initialize the first sample for u_1, ..., u_n
+  sigma <- rep(1, S)  # to save the S gibbs samples for sigma (not sigma2!)
+
+  # initialize
+  U_curr <- U[1, ]  # save the updated sample for u_1, ..., u_n
+  R2_curr <- R2[1]  # save the updated sample for R^2
+  sigma_curr <- sigma[1]  # save the updated sample for sigma (not sigma2!)
+  for(s in 1:S){
+    # Sample from full conditional of the inner radius
+    R2_curr <- rpareto(max(c(U_curr, m)), k + n)
+    R2[s] <- R2_curr
+    # Sample from full conditional of U values
+    U_curr <- truncnorm::rtruncnorm(n, a = 0, b = R2_curr, mean = Rsq, sd = sigma_curr)
+    U[s, ] <- U_curr
+    # Sample from full conditional of sigma
+    sigma_curr <-  sqrt(1 / rgamma(1, shape=n/2+alpha, rate=beta + 0.5*sum((r-U_curr)^2)))
+    sigma[s] <- sigma_curr
+  }
+  return(list(R = R2[seq(burn_in, S, by = thin)], 
+              U = U[seq(burn_in, S, by = thin), ], 
+              sigma = sigma[seq(burn_in, S, by = thin)]))
+}
+
+gibbs_samps <- uni_pareto_gibbs(S = 100000, r, m, k, alpha, beta, burn_in=2000)
+```
 
 
+# Exercise 2
+Here we plot the inferred $R^2$ posterior marginal against the true $R^2$. It looks like we
+are doing an excellent job of estimating the mean and the shape. 
+```{r echo=T}
+ggplot() +
+  geom_density(data = data.frame(R = gibbs_samps$R), aes(x=R)) +
+  geom_vline(xintercept = true_Rsquared, color='#da1a1a', linetype="dotted")
+```
+
+# Exercise 3
+Here we plot the inferred $\sigma^2$ posterior marginal against the true $sigma^2$.
+On average, we are underestimating the noise term here.
+```{r echo=T}
+ggplot() +
+  geom_density(data = data.frame(sigma = gibbs_samps$sigma^2), aes(x=sigma)) +
+  geom_vline(xintercept = true_sigma^2, color='#da1a1a', linetype="dotted")
+```
+
+# Exercise 4
+Furthermore, here we do a 2D contour plot between $(R^2, \sigma^2)$ and compare the distribution to
+the true parameter. Matching with the previous comments that we are underestimating the variances.
+```{r echo=T}
+ggplot() +
+  geom_density2d_filled(data = data.frame(R = gibbs_samps$R, sigma = gibbs_samps$sigma^2), aes(sigma, R)) +
+  geom_vline(xintercept = true_sigma^2, color='#da1a1a', linetype="dotted") +
+  geom_hline(yintercept = true_Rsquared, color='#da1a1a', linetype="dotted")
+```
 ***
