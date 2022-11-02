@@ -151,12 +151,12 @@ We are given the following hierarchical model in the probit regression with a kn
 \end{align*}
 
 \paragraph{(b) Full Conditional for $c$ and $Z_i$}
-We can see $c$ is a constrained normal distribution under a interval.
+We can see $c$ is a constrained normal distribution under an interval.
 \begin{align*}
     p(c) = \mathcal{N}(0, \tau_c^2) \\
     p(c|Y, X, Z, \beta) &\propto p(Y|Z, c) p(c) \\
         &\propto p(c) \prod_i p(Y_i|Z_i, c) \\
-        &\propto p(c) \prod_{i \in Y_i=1} \delta_{(c,\infty)}(Z_i)^{Y_i} \prod_{j \in Y_i=0} \delta_{(-\infty,c)}(Z_j)^{1-Y_j} \\
+        &\propto p(c) \prod_{i \in Y_i=0} \delta_{(-\infty,c)}(Z_i) \prod_{j \in Y_i=1} \delta_{(c,\infty)}(Z_j) \\
         &\propto \mathcal{N}(0, \tau_c^2) \mathbb{I}(\max\{Z_i \in Y_i=0\} \leq c < \min\{Z_i \in Y_i=1\}) 
 \end{align*}
 And on the other hand, the full conditional of $Z_i$ is a truncated normal. First, because we know the latent variable $Z_i$ itself is given by a normal generative model with $X_i$ and $\beta$. But the additional information from $Y_i$ constrained the region that $Z_i$ could be. Hence, the following formulations.
@@ -164,11 +164,11 @@ And on the other hand, the full conditional of $Z_i$ is a truncated normal. Firs
     p(Z_i|X_i,Y_i,\beta,c) &\propto p(Y_i|Z_i, c) p(Z_i|X_i, \beta) \\ \\
     p(Z_i|X_i,\beta,Y_i=1,c) &\propto p(Y_i=1|Z_i, c) p(Z_i|X_i, \beta) \\
         &\propto \mathcal{N}(Z_i|X_i\beta, 1)\delta_{(c,\infty)}(Z_i) \\
-    p(Z_i|X_i,\beta,Y_i=2,c) &\propto \mathcal{N}(Z_i|X_i\beta, 1)\delta_{(-\infty,c)}(Z_i) \\
+    p(Z_i|X_i,\beta,Y_i=0,c) &\propto \mathcal{N}(Z_i|X_i\beta, 1)\delta_{(-\infty,c)}(Z_i) \\
 \end{align*}
 
 \paragraph{(c) Gibbs Samples}
-Here we implemented the above formulation using Gibbs sampler. I had it ran for 2,000 burn-in epochs and additional 30,000 sampling epochs. The following chain is the result. We still see high autocorrelation for both $c$ and $\beta$ during the sampling. The effective sample size for $c$ is 1,156 and it is 1,651 for $\beta$. The chains were very sticky.
+Here we implemented the above formulation using a Gibbs sampler. I had it run for 2,000 burn-in epochs and additional 30,000 sampling epochs. The following chain is the result. We still see high autocorrelation for both $c$ and $\beta$ during the sampling. The effective sample size for $c$ is 1,156 and it is 1,651 for $\beta$. The chains were very sticky.
 \begin{figure*}[!h]
   \centering
   \includegraphics[width=1.0\textwidth]{6.3.3(1).png}
