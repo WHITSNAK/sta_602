@@ -106,6 +106,7 @@ Here we show that the joint unit information priors consist of two proper conjug
 \paragraph{(b) Unit Information Posterior}
 If we use MLE's unit information priors, the posterior with the same data happens to be the same form with the effective sample size increased with $N$.
 \begin{align*}
+    \Lambda &= \Sigma^{-1} \\
     p_U(\theta,\Lambda|Y) &\propto p_U(\Lambda) p_U(\theta|\Lambda) p(Y|\theta, \Lambda) \\
         &\propto
             |\Lambda|^{\frac{p+1-p-1}{2}} \exp \left[ -\frac{1}{2} tr[\frac{1}{N}S_{\bar{y}}\Lambda] \right]
@@ -121,34 +122,37 @@ If we use MLE's unit information priors, the posterior with the same data happen
             |\Lambda|^{\frac{1}{2}} \exp \left[ - \frac{1}{2} [
                 \theta^{\intercal}(\Lambda+N\Lambda)\theta - \theta^{\intercal}(\Lambda+N\Lambda)\bar{y}
             \right] \\
-        &\propto Wi(N+p+1, \frac{N+1}{N}S_{\bar{y}}) \mathcal{N}((\Lambda+N\Lambda)^{-1}(\Lambda+N\Lambda)\bar{y}, (\Lambda+N\Lambda)^{-1})
+        &\propto
+            Wi(\Lambda | N+p+1, \frac{N+1}{N}S_{\bar{y}})
+            \mathcal{N}(\theta | \Sigma_n(\Lambda+N\Lambda)\bar{y}, \Sigma_n = (\Lambda+N\Lambda)^{-1})
 \end{align*}
-
 
 \section{Exercise 7.3}
 \paragraph{(a) Posterior}
 Since we have a known form in semi-conjugate, we can directly sample from it.
 \begin{align*}
-    \theta &\thicksim \mathcal{N}(\mu_o, \Sigma_o = \Lambda^{-1}) \\
-    \theta|Y, \Sigma &\thicksim \mathcal{N}(
-        \mu_n = \Sigma_n(\Lambda_o\mu_o+N\Lambda\bat{y}),
-        \Sigma_n = (\Lambda_o + N\Lambda)^{-1}
-    ) \\
     \Sigma &\thicksim IW(\nu_o, S_o) \\ 
-    \Sigma|Y &\thicksim IW(v_o + n, (S_0+S_{\theta})^{-1} \\
-    S_{\theta} &= \sum_i^N (y_i - \theta)(y_i - \theta)^{\intercal}
+    \Sigma|Y &\thicksim IW(v_o + n, S_0+S_{\theta}) \\
+    S_{\theta} &= \sum_i^N (y_i - \theta)(y_i - \theta)^{\intercal} \\
+    \theta &\thicksim \mathcal{N}(\mu_o, \Sigma_o = \Lambda_o^{-1}) \\
+    \theta|Y, \Sigma &\thicksim \mathcal{N}(
+        \mu_n = \Sigma_n(\Lambda_o\mu_o+N\Lambda\bar{y}),
+        \Sigma_n = (\Lambda_o + N\Lambda)^{-1})
+    )    
 \end{align*}
 
 \paragraph{(b) $\theta$ posteriors}
 After the Bayesian updates, we can see Blue crabs generally have smaller body widths and rear widths than orange crabs.
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=1.0\textwidth]{3.1.png}
+  \includegraphics[width=0.8\textwidth]{3.1.png}
   \captionsetup{justification=centering}
   \caption{$\theta$ Posteriors Comparison of two Crabs}
 \end{figure*}
 
-\paragraph{(c) Correlation on $Sigma$ posteriors}
+\newpage
+\paragraph{(c) Correlation on $\Sigma$ posteriors}
+Lastly, we plot the posterior correlation between the two crab species. We can see that the Orange crabs' widths are quite consistent between the body and rear widths. The Blue crabs are relatively less consistent. $P[\rho_{blue} < \rho_{orange}|Y] = 0.9915$.
 \begin{figure*}[!h]
   \centering
   \includegraphics[width=0.6\textwidth]{3.2.png}
