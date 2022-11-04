@@ -39,7 +39,7 @@ The Jeffrey prior is $p_J(\theta, \Sigma) \propto |\Sigma|^{-(p+2)/2}$. It is no
             -\frac{1}{2} (\theta^{\intercal}(N\Sigma^{-1})\theta
             + \theta^{\intercal}(N\Sigma^{-1} \bar{y}))
         \right] \\
-        &\thicksim \mathcal{N}(\theta|N\Sigma^{-1} \bar{Y}, N\Sigma^{-1}) \\ \\
+        &\thicksim \mathcal{N}(\theta|(N\Sigma^{-1})^{-1}N\Sigma^{-1} \bar{Y}, N\Sigma^{-1}) \\ \\
     p_J(\Sigma|Y, \theta) &\propto |\Sigma|^{-(N+p+2)/2} 
             \exp \left[ -\frac{1}{2} \sum_i^N (y_i-\theta)^{\intercal} \Sigma^{-1} (y_i-\theta) \right] \\
         &\propto |\Sigma|^{-(N+1+p+1)/2} \exp \left[ -\frac{1}{2} tr(S \Sigma^{-1}) \right] \\
@@ -121,12 +121,30 @@ If we use MLE's unit information priors, the posterior with the same data happen
             |\Lambda|^{\frac{1}{2}} \exp \left[ - \frac{1}{2} [
                 \theta^{\intercal}(\Lambda+N\Lambda)\theta - \theta^{\intercal}(\Lambda+N\Lambda)\bar{y}
             \right] \\
-        &\propto Wi(N+p+1, \frac{N+1}{N}S_{\bar{y}}) \mathcal{N}((\Lambda+N\Lambda)\bar{y}, (\Lambda+N\Lambda)^{-1})
+        &\propto Wi(N+p+1, \frac{N+1}{N}S_{\bar{y}}) \mathcal{N}((\Lambda+N\Lambda)^{-1}(\Lambda+N\Lambda)\bar{y}, (\Lambda+N\Lambda)^{-1})
 \end{align*}
 
 
 \section{Exercise 7.3}
+\paragraph{(a) Posterior}
+Since we have a known form in semi-conjugate, we can directly sample from it.
+\begin{align*}
+    \theta &\thicksim \mathcal{N}(\mu_o, \Sigma_o = \Lambda^{-1}) \\
+    \theta|Y, \Sigma &\thicksim \mathcal{N}(
+        \mu_n = \Sigma_n(\Lambda_o\mu_o+N\Lambda\bat{y}),
+        \Sigma_n = (\Lambda_o + N\Lambda)^{-1}
+    ) \\
+    \Sigma &\thicksim IW(\nu_o, S_o) \\ 
+    \Sigma|Y &\thicksim IW(v_o + n, (S_0+S_{\theta})^{-1} \\
+    S_{\theta} &= \sum_i^N (y_i - \theta)(y_i - \theta)^{\intercal}
+\end{align*}
 
-
+\paragraph{(b) $\theta$ posteriors}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{3.1.png}
+  \captionsetup{justification=centering}
+  \caption{$c$ Posterior Gibbs Samples}
+\end{figure*}
 
 \end{document}
