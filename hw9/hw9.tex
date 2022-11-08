@@ -9,6 +9,34 @@
 \usepackage[font=scriptsize]{caption}
 \usepackage{subcaption}
 \usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    texcl=true,
+    mathescape=true,
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
 \graphicspath{ {.} }
 \captionsetup{justification=raggedright, singlelinecheck=false}
 
@@ -129,7 +157,7 @@ If we use MLE's unit information priors, the posterior with the same data happen
 
 \section{Exercise 7.3}
 \paragraph{(a) Posterior}
-Since we have a known form in semi-conjugate, we can directly sample from it.
+Since we have known full conditionals, we can directly sample from it using a Gibbs sampler.
 \begin{align*}
     \Sigma &\thicksim IW(\nu_o, S_o) \\ 
     \Sigma|Y &\thicksim IW(v_o + n, S_0+S_{\theta}) \\
@@ -142,22 +170,95 @@ Since we have a known form in semi-conjugate, we can directly sample from it.
 \end{align*}
 
 \paragraph{(b) $\theta$ posteriors}
-After the Bayesian updates, we can see Blue crabs generally have smaller body widths and rear widths than orange crabs.
+We can see Blue crabs, on average, generally have smaller body widths and rear widths than orange crabs.
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=0.8\textwidth]{3.1.png}
+  \includegraphics[width=0.5\textwidth]{3.1.png}
   \captionsetup{justification=centering}
   \caption{$\theta$ Posteriors Comparison of two Crabs}
 \end{figure*}
 
 \newpage
 \paragraph{(c) Correlation on $\Sigma$ posteriors}
-Lastly, we plot the posterior correlation between the two crab species. We can see that the Orange crabs' widths are quite consistent between the body and rear widths. The Blue crabs are relatively less consistent. $P[\rho_{blue} < \rho_{orange}|Y] = 0.9915$.
+Lastly, we plot the posterior correlation between the two crab species. We can see that the Orange crabs' widths are quite consistent between the body and rear widths. The Blue crabs are relatively less consistent. $P[\rho_{blue} < \rho_{orange}|Y] = 0.8299$.
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=0.6\textwidth]{3.2.png}
+  \includegraphics[width=0.5\textwidth]{3.2.png}
   \captionsetup{justification=centering}
   \caption{Correlation Posteriors Comparison of two Crabs. }
 \end{figure*}
+
+\paragraph{Appendix}
+The code for generating the posterior samples is included here for completeness.
+\begin{lstlisting}[language=Python]
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy.stats as stats
+from numpy.linalg import inv
+
+sns.set_style('whitegrid')
+
+def cov2corr(S):
+    return S[0, 1] / np.sqrt(S[0, 0] * S[1, 1])
+
+blue = pd.read_csv("bluecrab.dat", names=["body","rear"], delimiter=" ")
+orange = pd.read_csv("orangecrab.dat", names=["body","rear"], delimiter=" ")
+
+burn_ins = 2000
+n_epochs = 10000
+
+# prior parameters
+mu0 = blue.mean().values
+A0 = S0 = blue.cov().values
+v0 = 4
+
+# Blue posterior
+N = blue.shape[0]
+S = blue.cov()
+
+blue_samples = []
+for epoch in range(n_epochs + burn_ins):
+    v_n = v0 + N
+    S_n = S0 + S
+    sigma_pos_rv = stats.invwishart(df=v_n, scale=S_n)
+
+    $\Sigma$ = sigma_pos_rv.rvs()
+    $\Sigma$_n = inv(inv(A0) + N*inv($\Sigma$))
+    $\mu$_n = $\Sigma$_n @ (inv(A0)@mu0 + N*inv($\Sigma$)@blue.mean())
+
+    theta_pos_rv = stats.multivariate_normal($\mu$_n, $\Sigma$_n)
+    $\theta$ = theta_pos_rv.rvs()
+
+    if epoch < burn_ins:
+        continue 
+    else:
+        blue_samples.append(($\theta$, $\Sigma$))
+    
+
+# Orange posterior
+N = orange.shape[0]
+S = orange.cov()
+
+orange_samples = []
+for epoch in range(n_epochs + burn_ins):
+    v_n = v0 + N
+    S_n = S0 + S
+    sigma_pos_rv = stats.invwishart(df=v_n, scale=S_n)
+
+    $\Sigma$ = sigma_pos_rv.rvs()
+    $\Sigma$_n = inv(inv(A0) + N*inv($\Sigma$))
+    $\mu$_n = $\Sigma$_n @ (inv(A0)@mu0 + N*inv($\Sigma$)@orange.mean())
+
+    theta_pos_rv = stats.multivariate_normal($\mu$_n, $\Sigma$_n)
+    $\theta$ = theta_pos_rv.rvs()
+
+    if epoch < burn_ins:
+        continue 
+    else:
+        orange_samples.append(($\theta$, $\Sigma$))
+\end{lstlisting}
+
 
 \end{document}
