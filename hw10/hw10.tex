@@ -278,7 +278,21 @@ for epoch in range(nEpochs):
 \newpage
 \section{Exercise 7.6}
 \paragraph{(a) Separate Posterior Parameters Comparisons}
+Below graph shows the comparison between $\theta_{d, j}$ and $\theta_{n, j}$. At the same time, we also calculated the $P[\theta_{d, j} > \theta_{n, j}|Y]$. The obtained probability was all 100\% $\forall j \in \{1\dots7\}$.
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{3.a.png}
+  \captionsetup{justification=centering}
+  \caption{Posterior Comparison between the two groups}
+\end{figure*}
 
-
+\paragraph{(b) $\Sigma|Y$ Comparison}
+Lastly, we investigate the covariance samples. I averaged over all sampled posterior covariance for each group and plotted each entry color coded by the group. Below is the graph.
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{3.a.png}
+  \captionsetup{justification=centering}
+  \caption{Posterior Comparison between the two groups}
+\end{figure*}
 
 \end{document}
