@@ -128,6 +128,7 @@ it relies on observation data and MLE estimates. Diffuse priors can slow down th
 Hypothetically speaking, we end up with 25 samples instead of 100; diffuse priors will perform worse because it wants more data. And Unit Information priors will end up over-fitting easily because of the high MLE estimation variances with small data size. Jeffery priors can work; we need a better sampler than the Gibbs we are using now. However, if we are concerned about the code start issue, we should inject some knowledge into the prior instead of relying on a pair of uninformative priors.
 
 
+\newpage
 \section{Exercise 7.5}
 \paragraph{(a) Some Statistics on Observed Data}
 Due to missing data, here we only calculated the statistics on the observed portion of the data.
@@ -158,9 +159,126 @@ We imputed the data using missing at random assumption and multivariate normal s
 \end{figure*}
 
 \paragraph{(c) Gibbs Sample with MVN Imputation}
-Lastly, we use the Gibbs sampler to do the imputation and calculate the statistics about $\theta_A - \theta_B$. The posterior density is shown below at the Figure 6.
+Lastly, we use the Gibbs sampler to do the imputation and calculate the statistics about $\theta_A - \theta_B$. The posterior density is shown below in Figure 6.
+\begin{itemize}
+    \item The posterior mean is -0.615 
+    \item 95\% Confidence Interval $[-1.016, -0.207]$
+\end{itemize}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{2.c.png}
+  \captionsetup{justification=centering}
+  \caption{$\theta_A$ - $\theta_B$ Density - Gibbs Sampler}
+\end{figure*}
 
+\paragraph{Appendix}
+The code for generating the posterior samples is included here for completeness.
+\begin{lstlisting}[language=Python]
+import pandas as pd
+import numpy as np
+import scipy.stats as stats
+from numpy.linalg import inv
+from numpy.random import multivariate_normal
+from scipy.stats import invwishart
+
+class MVNMean:
+    def __init__(self, $\mu$0, $\Sigma$0):
+        self.$\mu$0 = $\mu$0
+        self.$\Sigma$0 = $\Sigma$0
+        self.$\Lambda$0 = inv($\Sigma$0)
+    
+    def sample_prior(self, size=1):
+        return multivariate_normal(self.$\mu$0, self.$\Sigma$0, size=size)
+    
+    def sample_posterior(self, X, $\Sigma$, size=1):
+        n = X.shape[0]
+        X_mean = X.mean(axis=0)
+
+        $\Lambda$ = inv($\Sigma$)
+        $\Lambda$n = self.$\Lambda$0 + n * $\Lambda$
+        $\Sigma$n = inv($\Lambda$n)
+        $\mu$n = $\Sigma$n @ ($\Lambda$ @ (n*X_mean) + self.$\Lambda$0 @ self.$\mu$0)
+        return multivariate_normal($\mu$n, $\Sigma$n, size=size)
+
+class MVNSigma:
+    def __init__(self, v0, S0):
+        self.v0 = v0
+        self.S0 = S0
+    
+    def sample_prior(self, size=1):
+        return invwishart(self.v0, self.S0).rvs(size=size)
+    
+    def sample_posterior(self, X, $\theta$, size=1):
+        n = X.shape[0]
+        S = (X - $\theta$).T @ (X - $\theta$)
+
+        vn = self.v0 + n
+        Sn = self.S0 + S
+        return invwishart(vn, Sn).rvs(size=size)
+
+def impute_B(B_mean, yA, A_mean, B_var, A_var, rho):
+    return B_mean + (yA - A_mean) * np.sqrt(B_var/A_var) * rho
+
+def impute_A(A_mean, yB, B_mean, A_var, B_var, rho):
+    return A_mean + (yB - B_mean) * np.sqrt(A_var/B_var) * rho
+
+def cov2corr($\Sigma$):
+    var = np.diag($\Sigma$).reshape(-1, 1)
+    return $\Sigma$ / np.sqrt(var @ var.T)
+
+def impute_X(X, $\theta$, $\Sigma$):
+    $\theta$A, $\theta$B = $\theta$
+    $\sigma$2A, $\sigma$2B = $\Sigma$[0,0], $\Sigma$[1,1]
+    $\rho$ = cov2corr($\Sigma$)[0,1]
+
+    imputed_X = []
+    for (yA, yB) in X:
+        if np.isnan(yA):
+            imputed_X.append((impute_A($\theta$A, yB, $\theta$B, $\sigma$2A, $\sigma$2B, $\rho$), yB))
+        elif np.isnan(yB):
+            imputed_X.append((yA, impute_B($\theta$B, yA, $\theta$A, $\sigma$2B, $\sigma$2A, $\rho$)))
+        else:
+            imputed_X.append((yA, yB))
+
+    return np.array(imputed_X)
+
+# get data
+df = pd.read_fwf("interexp.dat")
+X = df.values
+N = df.shape[0]
+
+# prior parameters
+$\theta$_rv = MVNMean(
+    $\mu$0 = df.mean().values,
+    $\Sigma$0 = df.dropna().cov().values
+)
+
+$\Sigma$_rv = MVNSigma(
+    v0 = 2,
+    S0 = df.dropna().cov().values
+)
+
+samples = []
+nEpochs = 10000
+$\Sigma$ = $\Sigma$_rv.sample_prior()
+$\theta$ = $\theta$_rv.sample_prior().ravel()
+imputed_X = impute_X(X, $\theta$, $\Sigma$)
+for epoch in range(nEpochs):
+    $\theta$ = $\theta$_rv.sample_posterior(imputed_X, $\Sigma$).ravel()
+    $\Sigma$ = $\Sigma$_rv.sample_posterior(imputed_X, $\theta$)
+    imputed_X = impute_X(X, $\theta$, $\Sigma$)
+
+    diff = $\theta$[0] - $\theta$[1]
+
+    samples.append(($\theta$, $\Sigma$, diff))
+\end{lstlisting}
+
+
+
+\newpage
 \section{Exercise 7.6}
+\paragraph{(a) Separate Posterior Parameters Comparisons}
+
 
 
 \end{document}
