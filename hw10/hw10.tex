@@ -139,7 +139,7 @@ Due to missing data, here we only calculated the statistics on the observed port
 \end{itemize}
 
 \paragraph{(b)}
-We imputed the data using missing at random assumption and multivariate normal sampling model. After we arrived at the imputed dataset, we ran a t-test on $\theta_A - \theta_B$ to see if there were any significant differences between the two response times. The t-test came back with some good results saying that we rejected the null hypothesis. See Figures (4) and (5) for details.
+We imputed the data using missing at random assumption and multivariate normal sampling model. After we arrived at the imputed dataset, we ran a t-test on $\theta_A - \theta_B$ to see if there were any significant differences between the two response times. The t-test came back with some good results, saying we rejected the null hypothesis. See Figures (4) and (5) for details.
 \begin{itemize}
     \item t-statistics $= -3.455$, p-value $= 0.0018$
     \item 95\% Confidence Interval $[-3.45, 2.332]$
@@ -286,13 +286,127 @@ Below graph shows the comparison between $\theta_{d, j}$ and $\theta_{n, j}$. At
   \caption{Posterior Comparison between the two groups}
 \end{figure*}
 
+\newpage
 \paragraph{(b) $\Sigma|Y$ Comparison}
-Lastly, we investigate the covariance samples. I averaged over all sampled posterior covariance for each group and plotted each entry color coded by the group. Below is the graph.
+Lastly, we investigate the covariance samples. I averaged over all sampled posterior covariance for each group and plotted each entry color coded by the group. Below is the graph, Figure 8. We can see glucose is the feature that has the largest variation in magnitude between the two groups. Another interesting thing is to compare the correlation instead.
+
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=1.0\textwidth]{3.a.png}
+  \includegraphics[width=0.35\textwidth]{3.b.png}
   \captionsetup{justification=centering}
-  \caption{Posterior Comparison between the two groups}
+  \caption{Posterior $\Sigma$ Comparison by Entries}
 \end{figure*}
+
+\paragraph{Appendix}
+The code for generating the posterior samples is included here for completeness.
+\begin{lstlisting}[language=Python]
+import pandas as pd
+import numpy as np
+import scipy.stats as stats
+from numpy.linalg import inv
+from numpy.random import multivariate_normal
+from scipy.stats import invwishart
+
+class MVNMean:
+    def __init__(self, $\mu$0, $\Sigma$0):
+        self.$\mu$0 = $\mu$0
+        self.$\Sigma$0 = $\Sigma$0
+        self.$\Lambda$0 = inv($\Sigma$0)
+    
+    def sample_prior(self, size=1):
+        return multivariate_normal(self.$\mu$0, self.$\Sigma$0, size=size)
+    
+    def sample_posterior(self, X, $\Sigma$, size=1):
+        n = X.shape[0]
+        X_mean = X.mean(axis=0)
+
+        $\Lambda$ = inv($\Sigma$)
+        $\Lambda$n = self.$\Lambda$0 + n * $\Lambda$
+        $\Sigma$n = inv($\Lambda$n)
+        $\mu$n = $\Sigma$n @ ($\Lambda$ @ (n*X_mean) + self.$\Lambda$0 @ self.$\mu$0)
+        return multivariate_normal($\mu$n, $\Sigma$n, size=size)
+
+class MVNSigma:
+    def __init__(self, v0, S0):
+        self.v0 = v0
+        self.S0 = S0
+    
+    def sample_prior(self, size=1):
+        return invwishart(self.v0, self.S0).rvs(size=size)
+    
+    def sample_posterior(self, X, $\theta$, size=1):
+        n = X.shape[0]
+        S = (X - $\theta$).T @ (X - $\theta$)
+
+        vn = self.v0 + n
+        Sn = self.S0 + S
+        return invwishart(vn, Sn).rvs(size=size)
+
+# getting the data
+df = pd.read_fwf("azdiabetes.dat", skiprows=[0], header=None)
+df.columns = "npreg glu bp skin bmi ped age diabetes".split()
+df.diabetes = df.diabetes == 'Yes'
+
+df_d = df[df.diabetes].drop(['diabetes'], axis=1)
+df_n = df[~df.diabetes].drop(['diabetes'], axis=1)
+
+# sampling for diabete cases
+X = df_d.values
+N = df_d.shape[0]
+
+# prior parameters
+$\theta$_rv = MVNMean(
+    $\mu$0 = df_d.mean().values,
+    $\Sigma$0 = df_d.cov().values,
+)
+
+$\Sigma$_rv = MVNSigma(
+    v0 = df_d.shape[1] + 2,
+    S0 = df_d.cov().values,
+)
+
+nEpochs = 10000
+d_samples = []
+
+$\Sigma$ = $\Sigma$_rv.sample_prior()
+$\theta$ = $\theta$_rv.sample_prior().ravel()
+for epoch in range(nEpochs):
+    $\theta$ = $\theta$_rv.sample_posterior(X, $\Sigma$).ravel()
+    $\Sigma$ = $\Sigma$_rv.sample_posterior(X, $\theta$)
+
+    d_samples.append(($\theta$, $\Sigma$))
+
+d_theta_samples = pd.DataFrame(map(lambda x: x[0], d_samples), columns=df.columns[:-1])
+d_sigma_samples = np.array(list(map(lambda x: x[1], d_samples)))
+
+# sampling for non diabete cases
+X = df_n.values
+N = df_n.shape[0]
+
+# prior parameters
+$\theta$_rv = MVNMean(
+    $\mu$0 = df_n.mean().values,
+    $\Sigma$0 = df_n.cov().values,
+)
+
+$\Sigma$_rv = MVNSigma(
+    v0 = df_n.shape[1] + 2,
+    S0 = df_n.cov().values,
+)
+
+nEpochs = 10000
+n_samples = []
+
+$\Sigma$ = $\Sigma$_rv.sample_prior()
+$\theta$ = $\theta$_rv.sample_prior().ravel()
+for epoch in range(nEpochs):
+    $\theta$ = $\theta$_rv.sample_posterior(X, $\Sigma$).ravel()
+    $\Sigma$ = $\Sigma$_rv.sample_posterior(X, $\theta$)
+
+    n_samples.append(($\theta$, $\Sigma$))
+
+n_theta_samples = pd.DataFrame(map(lambda x: x[0], n_samples), columns=df.columns[:-1])
+n_sigma_samples = np.array(list(map(lambda x: x[1], n_samples)))
+\end{lstlisting}
 
 \end{document}
