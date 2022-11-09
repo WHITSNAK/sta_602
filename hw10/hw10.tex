@@ -138,11 +138,27 @@ Due to missing data, here we only calculated the statistics on the observed port
 \end{itemize}
 
 \paragraph{(b)}
-We imputed the data using missing at random assumption and multivariate normal sampling model. After we arrived at the imputed dataset, we ran a t-test on $\theta_A - \theta_B$ to see if there were any significant differences between the two response times. The t-test came back with some good results saying that we rejected the null hypothesis.
+We imputed the data using missing at random assumption and multivariate normal sampling model. After we arrived at the imputed dataset, we ran a t-test on $\theta_A - \theta_B$ to see if there were any significant differences between the two response times. The t-test came back with some good results saying that we rejected the null hypothesis. See Figures (4) and (5) for details.
 \begin{itemize}
     \item t-statistics $= -3.455$, p-value $= 0.0018$
-    \item 95\% Confidence Interval $[-3.45, 2.332$
+    \item 95\% Confidence Interval $[-3.45, 2.332]$
 \end{itemize}
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.85\textwidth]{2.a.png}
+  \captionsetup{justification=centering}
+  \caption{Imputation before and after comparison}
+\end{figure*}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.6\textwidth]{2.b.png}
+  \captionsetup{justification=centering}
+  \caption{$\theta_A$ - $\theta_B$ Density}
+\end{figure*}
+
+\paragraph{(c) Gibbs Sample with MVN Imputation}
+Lastly, we use the Gibbs sampler to do the imputation and calculate the statistics about $\theta_A - \theta_B$. The posterior density is shown below at the Figure 6.
 
 \section{Exercise 7.6}
 
