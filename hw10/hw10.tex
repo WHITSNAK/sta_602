@@ -49,8 +49,9 @@
 
 \section{Exercise 7.4}
 \paragraph{(a)}
-Here I decided to use a prior that doesn't content much of information with a sprinkle of my guesses.
+Here I decided to use a prior that doesn't contain much information with a sprinkle of my guesses.
 \begin{align*}
+    Y_i &\mathop{\thicksim}^{iid} \mathcal{N}(\theta, \Sigma) \\
     \theta &\thicksim \mathcal{N}(\theta|
         \mu_0=\begin{bmatrix}35\\33\end{bmatrix},
         \Sigma_0=\begin{bmatrix}5,0\\0,5\end{bmatrix}
@@ -58,16 +59,91 @@ Here I decided to use a prior that doesn't content much of information with a sp
     \Sigma &\thicksim IW(\Sigma|\nu_o = 3, S_o =\begin{bmatrix}100,60\\60,100\end{bmatrix})
 \end{align*}
 
-Below are 3 draws of prior predictive distribution samples resulted from the above prior specifications.
+\paragraph{(b)}
+Below are 3 draws of prior predictive distribution samples resulting from the above prior specifications.
 \begin{figure*}[!h]
   \centering
-  \includegraphics[width=0.5\textwidth]{3.1.png}
+  \includegraphics[width=1.0\textwidth]{1.a.png}
   \captionsetup{justification=centering}
-  \caption{$\theta$ Posteriors Comparison of two Crabs}
+  \caption{Prior Predictive of $Y$}
 \end{figure*}
+
+\paragraph{(c)}
+Now, we draws posterior samples from the full conditionals using a Gibbs Sampler with the provided dataset $Y$.
+\begin{align*}
+    \theta|Y, \Sigma &\thicksim \mathcal{N}(\theta|\mu_n, \Sigma_n) \\
+    \Sigma_n &= (\Sigma_0^{-1} + N \Sigma^{-1})^{-1} \\
+    \mu_n &= \Sigma_n (\Sigma^{-1}N\bar{Y} + \Sigma_0^{-1}\mu_o) \\ \\
+    \Sigma|Y &\thicksim IW(\nu_o, S_n) \\
+    \nu_n &= \nu_o + N \\
+    S_n &= S_o + S_\theta \\
+    S_\theta &= \sum_i^N (y_i - \theta)(y_i - \theta)^{\intercal}
+\end{align*}
+
+Below are the plots for the joint $\theta$ posterior and the marginal posterior correlation distribution between $Y_h$ and $Y_w$.
+We also obtained statistics around $\theta|Y$, too. $\theta_h|Y$ and $\theta_w|Y$ has around 0.903 correlation. $\theta_h|Y$'s
+95\% confidence interval lies between $[43.35, 46.90]$, and $\theta_w|Y$'s 95\% confidence interval lies between $[39.88, 43.18]$.
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.5\textwidth]{1.b.png}
+  \captionsetup{justification=centering}
+  \caption{$\theta$ Posterior Joint}
+\end{figure*}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.5\textwidth]{1.c.png}
+  \captionsetup{justification=centering}
+  \caption{$Y$ correlation distribution}
+\end{figure*}
+
+\paragraph{(d.i) Jeffery Priors}
+Using Jeffery Priors, we can see the chain is slow on convergence.
+\begin{itemize}
+    \item $\mu_o=0, \Sigma_o=\mathbf{I}, \nu_o=1, S_o = \mathbf{0}$
+    \item Posterior correlation $0.213$
+    \item $\theta_h|Y$'s 95\% confidence interval lies between $[0.64, 2.99]$
+    \item $\theta_w|Y$'s 95\% confidence interval lies between $[0.35, 2.72]$
+\end{itemize}
+
+\paragraph{(d.ii) Unit Information Priors}
+Using Unit Information Priors with MLE:
+\begin{itemize}
+    \item Posterior correlation $0.907$
+    \item $\theta_h|Y$'s 95\% confidence interval lies between $[43.46, 47.11]$
+    \item $\theta_w|Y$'s 95\% confidence interval lies between $[39.98, 43.44]$
+\end{itemize}
+
+\paragraph{(d.iii) Diffuse Priors}
+Using an extremely diffuse prior pair:
+\begin{itemize}
+    \item Posterior correlation $0.853$
+    \item $\theta_h|Y$'s 95\% confidence interval lies between $[43.47, 47.17]$
+    \item $\theta_w|Y$'s 95\% confidence interval lies between $[40.00, 43.48]$
+\end{itemize}
+
+\paragraph{(e)}
+I certainly think my priors helped quite a lot, especially compared to the Jeffery priors. Although Jeffery priors don't contain any information, assuming the means are zeros made the Gibbs sampler slower. Unit Information Priors tend to over-fit because
+it relies on observation data and MLE estimates. Diffuse priors can slow down the learning process if we have good domain knowledge of the subject, like in our case here.
+
+Hypothetically speaking, we end up with 25 samples instead of 100; diffuse priors will perform worse because it wants more data. And Unit Information priors will end up over-fitting easily because of the high MLE estimation variances with small data size. Jeffery priors can work; we need a better sampler than the Gibbs we are using now. However, if we are concerned about the code start issue, we should inject some knowledge into the prior instead of relying on a pair of uninformative priors.
 
 
 \section{Exercise 7.5}
+\paragraph{(a) Some Statistics on Observed Data}
+Due to missing data, here we only calculated the statistics on the observed portion of the data.
+\begin{itemize}
+    \item Mean: $\hat{\theta}_{A_{obs}} = 24.20, \hat{\theta}_{B_{obs}} = 24.81$
+    \item Variances: $\hat{\sigma}^2_{A_{obs}} = 4.09, \hat{\sigma}^2_{B_{obs}} = 4.69$
+    \item Correlation: $\hat{\rho}_{obs} = 0.616$
+\end{itemize}
+
+\paragraph{(b)}
+We imputed the data using missing at random assumption and multivariate normal sampling model. After we arrived at the imputed dataset, we ran a t-test on $\theta_A - \theta_B$ to see if there were any significant differences between the two response times. The t-test came back with some good results saying that we rejected the null hypothesis.
+\begin{itemize}
+    \item t-statistics $= -3.455$, p-value $= 0.0018$
+    \item 95\% Confidence Interval $[-3.45, 2.332$
+\end{itemize}
+
 \section{Exercise 7.6}
 
 
