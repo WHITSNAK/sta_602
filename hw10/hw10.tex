@@ -60,7 +60,7 @@ Here I decided to use a prior that doesn't contain much information with a sprin
 \end{align*}
 
 \paragraph{(b)}
-Below are 3 draws of prior predictive distribution samples resulting from the above prior specifications.
+Below are 3 draws of prior predictive distribution samples resulting from prior specifications.
 \begin{figure*}[!h]
   \centering
   \includegraphics[width=1.0\textwidth]{1.a.png}
@@ -69,7 +69,7 @@ Below are 3 draws of prior predictive distribution samples resulting from the ab
 \end{figure*}
 
 \paragraph{(c)}
-Now, we draws posterior samples from the full conditionals using a Gibbs Sampler with the provided dataset $Y$.
+Now, we draw posterior samples from the full conditionals using a Gibbs Sampler with the provided dataset $Y$.
 \begin{align*}
     \theta|Y, \Sigma &\thicksim \mathcal{N}(\theta|\mu_n, \Sigma_n) \\
     \Sigma_n &= (\Sigma_0^{-1} + N \Sigma^{-1})^{-1} \\
@@ -99,10 +99,10 @@ We also obtained statistics around $\theta|Y$, too. $\theta_h|Y$ and $\theta_w|Y
 \paragraph{(d.i) Jeffery Priors}
 Using Jeffery Priors, we can see the chain is slow on convergence.
 \begin{itemize}
-    \item $\mu_o=0, \Sigma_o=\mathbf{I}, \nu_o=1, S_o = \mathbf{0}$
-    \item Posterior correlation $0.213$
-    \item $\theta_h|Y$'s 95\% confidence interval lies between $[0.64, 2.99]$
-    \item $\theta_w|Y$'s 95\% confidence interval lies between $[0.35, 2.72]$
+    \item $\mu_o=\mathbf{0}, \Sigma_o=\infty, \nu_o=1, S_o = \mathbf{0}$
+    \item Posterior correlation $0.903$
+    \item $\theta_h|Y$'s 95\% confidence interval lies between $[43.50, 47.15]$
+    \item $\theta_w|Y$'s 95\% confidence interval lies between $[40.03, 43.45]$
 \end{itemize}
 
 \paragraph{(d.ii) Unit Information Priors}
@@ -122,11 +122,95 @@ Using an extremely diffuse prior pair:
 \end{itemize}
 
 \paragraph{(e)}
-I certainly think my priors helped quite a lot, especially compared to the Jeffery priors. Although Jeffery priors don't contain any information, assuming the means are zeros made the Gibbs sampler slower. Unit Information Priors tend to over-fit because
-it relies on observation data and MLE estimates. Diffuse priors can slow down the learning process if we have good domain knowledge of the subject, like in our case here.
+I certainly think my priors helps. However, all different priors arrive at a similar posterior with just a slight difference. So there are no many differences in this case.
 
-Hypothetically speaking, we end up with 25 samples instead of 100; diffuse priors will perform worse because it wants more data. And Unit Information priors will end up over-fitting easily because of the high MLE estimation variances with small data size. Jeffery priors can work; we need a better sampler than the Gibbs we are using now. However, if we are concerned about the code start issue, we should inject some knowledge into the prior instead of relying on a pair of uninformative priors.
+Hypothetically speaking, we end up with 25 samples instead of 100; diffuse priors will perform worse because it wants more data. And Unit Information priors will end up over-fitting easily because of the high MLE estimation variances with small data size. Jeffery priors can work, but it is not designed for multivariate models. If we are concerned about the code start issue, we should inject some knowledge into the prior instead of relying on a pair of uninformative priors.
 
+\paragraph{Appendix}
+The code for generating the posterior samples is included here for completeness.
+\begin{lstlisting}[language=Python]
+import pandas as pd
+import numpy as np
+import scipy.stats as stats
+from numpy.linalg import inv
+
+class MVNMean:
+    def __init__(self, $\mu$0, $\Sigma$0):
+        self.$\mu$0 = $\mu$0
+        self.$\Sigma$0 = $\Sigma$0
+        self.$\Lambda$0 = inv(self.$\Sigma$0)
+    
+    def sample_prior(self, n=1):
+        return np.random.multivariate_normal(self.$\mu$0, self.$\Sigma$0, size=n)
+    
+    def sample_posterior(self, X, $\Sigma$, n=1):
+        N = X.shape[0]
+        X_bar = X.mean(axis=0)
+        $\Lambda$ = inv($\Sigma$)
+        $\Lambda$n = self.$\Lambda$0 + N*$\Lambda$
+        $\mu$n = inv($\Lambda$n) @ ($\Lambda$ @ (N*X_bar) + self.$\Lambda$0 @ self.$\mu$0)
+
+        return np.random.multivariate_normal($\mu$n, inv($\Lambda$n), size=n)
+
+class MVNCov:
+    def __init__(self, v0, S0):
+        self.v0 = v0
+        self.S0 = S0
+    
+    def sample_prior(self, n=1):
+        return stats.invwishart(self.v0, self.S0).rvs(size=n)
+    
+    def sample_posterior(self, X, $\theta$, n=1):
+        N = X.shape[0]
+        vn = self.v0 + N
+        S$\theta$ = (X - $\theta$).T @ (X - $\theta$)
+        Sn = self.S0 + S$\theta$
+
+        return stats.invwishart(vn, Sn).rvs(size=n)
+
+def run_gibbs_sampler(X, $\theta$_rv, $\Sigma$_rv, n_epochs, burnin=500):
+    N = X.shape[0]
+
+    samples = []
+    $\Sigma$ = np.eye(X.shape[1]) # default init works for improper priors
+    for epoch in range(n_epochs+burnin):
+        $\theta$ = $\theta$_rv.sample_posterior(X, $\Sigma$).ravel()
+        $\Sigma$ = $\Sigma$_rv.sample_posterior(X, $\theta$)
+
+        ys = stats.multivariate_normal($\theta$, $\Sigma$).rvs(size=N)
+        post_corr = np.corrcoef(ys.T)[0,1]
+
+        if epoch < burnin:
+            continue
+        else:
+            samples.append(($\theta$, $\Sigma$, post_corr))
+    
+    return samples
+
+n_epochs = 10000
+burin = 500
+
+df = pd.read_csv("agehw.dat", delimiter=" ")
+X = df.values
+
+# prior parameters
+$\theta$_rv = MVNMean(
+    $\mu$0 = np.array([35,33]),
+    $\Sigma$0 = np.array([
+        [100, 60],
+        [60, 100]
+    ])
+)
+$\Sigma$_rv = MVNCov(
+    v0 = 3,
+    S0 = np.array([
+        [5, 0],
+        [0, 5]
+    ])
+)
+
+samples = run_gibbs_sampler(X, $\theta$_rv, $\Sigma$_rv, n_epochs, burin)
+\end{lstlisting}
 
 \newpage
 \section{Exercise 7.5}
@@ -142,7 +226,7 @@ Due to missing data, here we only calculated the statistics on the observed port
 We imputed the data using missing at random assumption and multivariate normal sampling model. After we arrived at the imputed dataset, we ran a t-test on $\theta_A - \theta_B$ to see if there were any significant differences between the two response times. The t-test came back with some good results, saying we rejected the null hypothesis. See Figures (4) and (5) for details.
 \begin{itemize}
     \item t-statistics $= -3.455$, p-value $= 0.0018$
-    \item 95\% Confidence Interval $[-3.45, 2.332]$
+    \item 95\% Confidence Interval $[-0.985, -0.238]$
 \end{itemize}
 
 \begin{figure*}[!h]
@@ -155,7 +239,7 @@ We imputed the data using missing at random assumption and multivariate normal s
   \centering
   \includegraphics[width=0.6\textwidth]{2.b.png}
   \captionsetup{justification=centering}
-  \caption{$\theta_A$ - $\theta_B$ Density}
+  \caption{$\theta_A$ - $\theta_B$ Density & Its Mean Interval}
 \end{figure*}
 
 \paragraph{(c) Gibbs Sample with MVN Imputation}
