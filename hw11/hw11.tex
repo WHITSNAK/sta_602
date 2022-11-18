@@ -192,8 +192,66 @@ Below are the posterior results from a wide range of different combinations of p
 
 
 \section{Exercise 8.3}
+We are given data from 8 schools and would like to use the hierarchical normal model to do inference among schools.
+\begin{align*}
+    y_{ij}|\theta_j, \sigma^2 &\thicksim \mathcal{N}(y_{ij}|\theta_j, \sigma^2) && i = 1\dots N, \, j = 1\dots M \\
+    \theta_j|\mu, \tau^2 &\thicksim \mathcal{N}(\theta_j|\mu, \tau^2) \\
+    \mu &\thicksim \mathcal{N}(\mu|\mu_o, \gamma_o^2) \\
+    \frac{1}{\tau^2} &\thicksim Gamma(\eta_o, \tau_o^2) \\
+    \frac{1}{\sigma^2} &\thicksim Gamma(\nu_o, \sigma^2_o) \\
+\end{align*}
 
+And the posterior full conditionals are given below.
+\begin{align*}
+    \theta_j|Y, \mu, \tau^2, \sigma^2
+        &\propto p(\theta_j|\mu, \tau^2) p(y_{.j}|\theta_j, \sigma^2) \\
+        &\propto p(\theta_j|\mu, \tau^2) \prod_i^{n_j} p(y_{ij}|\theta_j, \sigma^2) \\
+        &\thicksim \mathcal{N} \left[\theta_j |
+            \mu_n = \tau^2_n (\frac{1}{\sigma^2}n_j \bar{y}_j + \frac{1}{\tau^2} \mu),
+            \tau^2_n = (\frac{1}{\sigma^2} n_j + \frac{1}{\tau^2})^{-1}
+        \right] \\ \\
+    \mu|Y, \tau^2, \theta
+        &\propto \left[ \prod_j^m p(\theta_j|\mu, \tau^2) \right] p(\mu|\mu_o, \gamma^2_o) \\
+        &\thicksim \mathcal{N} \left[ \mu|
+            \mu_n = \gamma^2_n(\frac{1}{\tau^2}m\bar{\theta} + \frac{1}{\gamma^2_o} \mu_o),
+            \gamma^2_n = (\frac{1}{\tau^2} m + \frac{1}{\gamma^2_o})^{-1}
+        \right] \\ \\
+    \frac{1}{\tau^2}|Y, \mu, \theta
+        &\propto p(\tau^2|\eta_o, \tau_o^2) \prod_j^m p(\theta_j|\mu, \tau^2) \\
+        &\thicksim Gamma \left[ \alpha=\frac{m+\eta_o}{2}, \beta=\frac{1}{2}(\eta_o\tau_o^2 + \sum_j(\theta_j - \mu)^2) \right] \\ \\
+    \frac{1}{\sigma^2}|Y, \theta_
+        &\propto p(\sigma^2|\nu_o, \sigma^2_o) \prod_j^m \prod_i^{n_j} p(y_{ij}|\theta_j, \sigma^2) \\
+        &\thicksim Gamma \left[ \alpha=\frac{n+\nu_o}{2}, \beta=\frac{1}{2}(\nu_o\sigma_o^2 + \sum_j\sum_i(y_{ij} - \theta_j)^2) \right] \\ \\
+\end{align*}
 
+\paragraph{(a) Gibbs Sampling}
+Using the above full conditionals, I drew 10,000 MCMC samples after a 1,000 burn-in period. Below is the trace plots, auto-correlation plots, and the corresponding density plots for each variable. We can see the chains perform just fine with good mixing and converges quite succesfully.
+\begin{itemize}
+    \item ESS for $\sigma^2$ is 8,995
+    \item ESS for $\tau^2$ is 9,551
+    \item ESS for $\mu$ is 5,948
+\end{itemize}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{3.a.png}
+  \captionsetup{justification=centering}
+  \caption{MCMC Diagnostics}
+\end{figure*}
+
+\newpage
+\paragraph{(b) Posterior Statistics}
+Here are some statistics and prior and posterior comparisons.
+\begin{itemize}
+    \item $\mu$ posterior mean is 7.25 and 95\% CI $[6.254, 8.221]$
+    \item $\tau^2$ posterior mean is 3.85 and 95\% CI $[1.422, 9.800]$
+    \item $\sigma^2$ posterior mean is 14.84 and 95\% CI $[11.988, 18.393]$
+\end{itemize}
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=1.0\textwidth]{3.a.png}
+  \captionsetup{justification=centering}
+  \caption{Posteriors of three priors}
+\end{figure*}
 
 
 \end{document}
