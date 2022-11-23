@@ -1,0 +1,60 @@
+---
+title: 'STA 602 Lab 9'
+author: "Ryan Tang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+---
+
+```{r setup, message=F, warning=F, echo=F}
+require(tidyverse)
+require(rstanarm)
+require(magrittr)
+library(ggplot2)
+library(mlmRev)
+library(tidybayes)
+library(ggstance)
+library(dplyr)
+library(modelr)
+library(brms)
+
+setwd(".")
+ggplot2::theme_set(ggplot2::theme_bw())
+knitr::opts_chunk$set(fig.align = "center")
+```
+
+```{r message=F, warning=F}
+data(Gcsemv, package = "mlmRev")
+
+# Make Male the reference category and rename variable
+Gcsemv$female <- relevel(Gcsemv$gender, "M")
+
+# Use only total score on coursework paper
+GCSE <- subset(x = Gcsemv,
+               select = c(school, student, female, course))
+
+# Count unique schools and students
+m <- length(unique(GCSE$school))
+N <- nrow(GCSE)
+```
+
+### Ex 1
+Here we plot the histogram of the sample mean of course scores for each school.
+The distribution is left skewed with a mean around 77.
+```{r}
+mu_scores = Gcsemv %>%
+    group_by(school) %>%
+    summarize(mean = mean(course, na.rm=TRUE))
+
+hist(mu_scores$mean)
+```
+
+### Ex 2
+```{r}
+pooled <- stan_glm(course ~ 1 + female, data = GCSE, refresh = 0)
+unpooled <- stan_glm(course ~ -1 + school + female,data=GCSE, refresh = 0)
+mod1 <- stan_lmer(formula = course ~ 1 + (1 | school),
+                  data = GCSE,
+                  seed = 349,
+                  refresh = 0)
+```
